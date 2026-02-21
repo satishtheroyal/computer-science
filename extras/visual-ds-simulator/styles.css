@@ -1,0 +1,66 @@
+:root {
+  --bg: #0b1020;
+  --panel: #141b34;
+  --text: #e8ecff;
+  --muted: #9eb1ff;
+  --accent: #5eead4;
+  --danger: #f87171;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  background: radial-gradient(circle at 20% 20%, #17213f, var(--bg));
+  color: var(--text);
+}
+header, main { width: min(1200px, 92vw); margin: 0 auto; }
+header { padding: 1rem 0 0.5rem; }
+header p { color: var(--muted); margin-top: 0.2rem; }
+main { display: grid; gap: 1rem; padding-bottom: 2rem; }
+.panel {
+  background: color-mix(in srgb, var(--panel), #000 12%);
+  border: 1px solid #283159;
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+  box-shadow: 0 8px 24px #02040f80;
+}
+.controls .row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.8rem 0; }
+input, select, button {
+  border-radius: 10px;
+  border: 1px solid #39467f;
+  background: #0f1530;
+  color: var(--text);
+  padding: 0.5rem 0.7rem;
+}
+button { background: linear-gradient(120deg, #2b468b, #375aa8); cursor: pointer; }
+button:hover { filter: brightness(1.1); }
+button.ghost { background: transparent; }
+#deleteBtn { background: linear-gradient(120deg, #7f2236, #a12a48); }
+#scene {
+  width: 100%;
+  height: 410px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #344172;
+  background: linear-gradient(180deg, #0b0f22, #090d1b);
+}
+.info-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+pre {
+  white-space: pre-wrap;
+  margin: 0;
+  color: #d6f8ff;
+  background: #0d1330;
+  border: 1px solid #2a3767;
+  border-radius: 10px;
+  padding: 0.7rem;
+  min-height: 170px;
+}
+#complexityTable { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+#complexityTable th, #complexityTable td { border: 1px solid #2a3767; padding: 0.45rem; text-align: left; }
+small { color: var(--accent); }
+@media (max-width: 640px) { #scene { height: 300px; } }

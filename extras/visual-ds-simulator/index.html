@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Data Structures Simulator</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>3D Data Structures Simulator</h1>
+      <p>Interactive structures with algorithm code, flowchart, memory model, and complexity insights.</p>
+    </header>
+
+    <main>
+      <section class="panel controls">
+        <h2>Controls</h2>
+        <label>
+          Data structure
+          <select id="structureSelect">
+            <option value="array">Array</option>
+            <option value="linkedList">Linked List</option>
+            <option value="stack">Stack</option>
+            <option value="queue">Queue</option>
+            <option value="binarySearchTree">Binary Search Tree</option>
+          </select>
+        </label>
+
+        <div class="row">
+          <input id="valueInput" type="number" placeholder="value" />
+          <button id="insertBtn">Insert</button>
+          <button id="deleteBtn">Delete</button>
+          <button id="searchBtn">Search</button>
+          <button id="resetBtn" class="ghost">Reset</button>
+        </div>
+
+        <small id="status">Ready.</small>
+      </section>
+
+      <section class="panel scene-panel">
+        <h2>Canvas 3D View</h2>
+        <div id="scene">
+          <canvas id="vizCanvas" width="1100" height="410" aria-label="Data structure visualizer"></canvas>
+        </div>
+      </section>
+
+      <section class="panel info-grid">
+        <article>
+          <h3>Algorithm Code</h3>
+          <pre id="codeBlock"></pre>
+        </article>
+        <article>
+          <h3>Flowchart</h3>
+          <pre id="flowchart"></pre>
+        </article>
+        <article>
+          <h3>Memory Representation</h3>
+          <pre id="memory"></pre>
+        </article>
+        <article>
+          <h3>Complexity</h3>
+          <table id="complexityTable">
+            <thead>
+              <tr><th>Operation</th><th>Time</th><th>Space</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </article>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
