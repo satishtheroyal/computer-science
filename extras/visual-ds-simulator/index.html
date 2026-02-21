@@ -67,6 +67,26 @@
           </table>
         </article>
       </section>
+
+      <section class="panel control-flow-panel">
+        <h2>Code + Flowchart Control-Flow Visualization</h2>
+        <div class="row flow-controls">
+          <button id="stepBtn">Step</button>
+          <button id="playBtn">Auto Play</button>
+          <button id="pauseBtn" class="ghost">Pause</button>
+          <small id="flowStatus">No operation traced yet.</small>
+        </div>
+        <div class="control-flow-grid">
+          <article>
+            <h3>Code Execution Path</h3>
+            <ol id="codeTrace"></ol>
+          </article>
+          <article>
+            <h3>Flowchart Path</h3>
+            <ol id="flowTrace"></ol>
+          </article>
+        </div>
+      </section>
     </main>
 
     <script src="app.js"></script>

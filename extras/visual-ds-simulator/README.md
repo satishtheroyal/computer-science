@@ -6,6 +6,7 @@ A standalone browser-based simulator that combines:
 - Flowchart-like operation steps.
 - Memory representation panel.
 - Time and space complexity table.
+- Code + flowchart control-flow tracer (step and autoplay).
 
 ## Run locally
 
