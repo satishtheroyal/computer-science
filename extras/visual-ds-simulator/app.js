@@ -32,6 +32,8 @@ const trace = { codeSteps: [], flowSteps: [], index: -1, timer: null };
 
 const canvas = document.getElementById("vizCanvas");
 const ctx = canvas.getContext("2d");
+const traceCanvas = document.getElementById("traceCanvas");
+const tctx = traceCanvas.getContext("2d");
 const sceneWrap = document.getElementById("scene");
 const statusEl = document.getElementById("status");
 const codeEl = document.getElementById("codeBlock");
@@ -46,6 +48,8 @@ const flowStatusEl = document.getElementById("flowStatus");
 function resizeCanvas() {
   canvas.width = sceneWrap.clientWidth;
   canvas.height = sceneWrap.clientHeight;
+  traceCanvas.width = traceCanvas.clientWidth;
+  traceCanvas.height = traceCanvas.clientHeight;
 }
 
 function drawCube(x, y, w, h, depth, color, text) {
@@ -76,13 +80,22 @@ function drawCube(x, y, w, h, depth, color, text) {
   ctx.fillText(String(text), x + w / 2, y + h / 2 + 6);
 }
 
-function drawArrow(x1, y1, x2, y2) {
-  ctx.strokeStyle = "#5eead4";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(x1, y1);
-  ctx.lineTo(x2, y2);
-  ctx.stroke();
+function drawArrow(c, x1, y1, x2, y2, color = "#5eead4") {
+  c.strokeStyle = color;
+  c.lineWidth = 2;
+  c.beginPath();
+  c.moveTo(x1, y1);
+  c.lineTo(x2, y2);
+  c.stroke();
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+  const size = 7;
+  c.fillStyle = color;
+  c.beginPath();
+  c.moveTo(x2, y2);
+  c.lineTo(x2 - size * Math.cos(angle - Math.PI / 6), y2 - size * Math.sin(angle - Math.PI / 6));
+  c.lineTo(x2 - size * Math.cos(angle + Math.PI / 6), y2 - size * Math.sin(angle + Math.PI / 6));
+  c.closePath();
+  c.fill();
 }
 
 function drawLinear(mode) {
@@ -91,7 +104,7 @@ function drawLinear(mode) {
     const x = mode === "stack" ? canvas.width / 2 - 40 : 50 + i * 105;
     const y = mode === "stack" ? yBase - i * 55 : yBase;
     drawCube(x, y, 70, 45, 10, state.highlight === i ? "#25c9b7" : "#4f8cff", value);
-    if (mode === "queue" && i < state.data.length - 1) drawArrow(x + 80, y + 20, x + 95, y + 20);
+    if (mode === "queue" && i < state.data.length - 1) drawArrow(ctx, x + 80, y + 20, x + 95, y + 20);
   });
 }
 
@@ -112,8 +125,8 @@ function drawBST() {
   };
   walk(root, 0, canvas.width / 2);
   nodes.forEach(({ n, x, y }) => {
-    if (n.left) { const c = nodes.find((k) => k.n === n.left); drawArrow(x, y + 16, c.x, c.y - 16); }
-    if (n.right) { const c = nodes.find((k) => k.n === n.right); drawArrow(x, y + 16, c.x, c.y - 16); }
+    if (n.left) { const c = nodes.find((k) => k.n === n.left); drawArrow(ctx, x, y + 16, c.x, c.y - 16); }
+    if (n.right) { const c = nodes.find((k) => k.n === n.right); drawArrow(ctx, x, y + 16, c.x, c.y - 16); }
   });
   nodes.forEach(({ n, x, y }) => {
     ctx.beginPath();
@@ -138,6 +151,69 @@ function drawBackground() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
+function drawTrace3DNode(x, y, w, h, text, active, laneColor) {
+  const d = 8;
+  tctx.fillStyle = active ? "#5eead4" : laneColor;
+  tctx.fillRect(x, y, w, h);
+  tctx.fillStyle = active ? "#83fff1" : "#5f79d3";
+  tctx.beginPath();
+  tctx.moveTo(x, y);
+  tctx.lineTo(x + d, y - d);
+  tctx.lineTo(x + d + w, y - d);
+  tctx.lineTo(x + w, y);
+  tctx.closePath();
+  tctx.fill();
+  tctx.fillStyle = active ? "#2a726a" : "#334f9a";
+  tctx.beginPath();
+  tctx.moveTo(x + w, y);
+  tctx.lineTo(x + w + d, y - d);
+  tctx.lineTo(x + w + d, y + h - d);
+  tctx.lineTo(x + w, y + h);
+  tctx.closePath();
+  tctx.fill();
+  tctx.strokeStyle = "#d9e5ff";
+  tctx.strokeRect(x, y, w, h);
+  tctx.fillStyle = active ? "#03231e" : "#eef3ff";
+  tctx.font = "bold 12px sans-serif";
+  tctx.textAlign = "center";
+  tctx.fillText(text, x + w / 2, y + h / 2 + 4);
+}
+
+function drawTraceScene() {
+  const w = traceCanvas.width;
+  const h = traceCanvas.height;
+  const bg = tctx.createLinearGradient(0, 0, 0, h);
+  bg.addColorStop(0, "#091027");
+  bg.addColorStop(1, "#070d1d");
+  tctx.fillStyle = bg;
+  tctx.fillRect(0, 0, w, h);
+
+  tctx.fillStyle = "#9eb1ff";
+  tctx.font = "bold 14px sans-serif";
+  tctx.fillText("Code Path", 20, 24);
+  tctx.fillText("Flowchart Path", 20, h / 2 + 24);
+
+  const laneData = [
+    { steps: trace.codeSteps, y: 45, color: "#2f4d9e" },
+    { steps: trace.flowSteps, y: h / 2 + 45, color: "#2f6d77" },
+  ];
+
+  laneData.forEach((lane) => {
+    const n = Math.max(lane.steps.length, 1);
+    const nodeW = 140;
+    const nodeH = 36;
+    const gap = n > 1 ? Math.max(20, (w - 50 - n * nodeW) / (n - 1)) : 0;
+    lane.steps.forEach((step, i) => {
+      const x = 20 + i * (nodeW + gap);
+      const y = lane.y;
+      drawTrace3DNode(x, y, nodeW, nodeH, `${i + 1}. ${step.slice(0, 20)}`, i === trace.index, lane.color);
+      if (i < lane.steps.length - 1) {
+        drawArrow(tctx, x + nodeW + 8, y + nodeH / 2, x + nodeW + gap - 4, y + nodeH / 2, i < trace.index ? "#5eead4" : "#4e5f8f");
+      }
+    });
+  });
+}
+
 function setTrace(codeSteps, flowSteps) {
   trace.codeSteps = codeSteps;
   trace.flowSteps = flowSteps;
@@ -149,6 +225,7 @@ function renderTrace() {
   codeTraceEl.innerHTML = trace.codeSteps.map((s, i) => `<li class="${i === trace.index ? "active" : ""}">${s}</li>`).join("");
   flowTraceEl.innerHTML = trace.flowSteps.map((s, i) => `<li class="${i === trace.index ? "active" : ""}">${s}</li>`).join("");
   flowStatusEl.textContent = trace.index < 0 ? "Trace loaded. Click Step/Auto Play." : `Step ${trace.index + 1} / ${Math.max(trace.codeSteps.length, trace.flowSteps.length)}`;
+  drawTraceScene();
 }
 
 function nextTraceStep() {
@@ -166,8 +243,8 @@ function stopAutoPlay() {
 function buildTrace(op, value, found) {
   const v = value ?? "v";
   return {
-    codeSteps: [`op=${op}`, `read value=${v}`, found ? "branch: found" : "branch: not-found/na", "update structure", "render + status"],
-    flowSteps: ["Start", `Operation: ${op}`, "Decision", found ? "Success path" : "Fallback path", "End"],
+    codeSteps: [`op=${op}`, `read value=${v}`, found ? "branch: success" : "branch: fallback", "mutate/scan structure", "render + status"],
+    flowSteps: ["Start", `Operation: ${op}`, "Decision", found ? "Success path" : "Not-found path", "End"],
   };
 }
 
@@ -215,9 +292,8 @@ function applyOp(op) {
     } else {
       if (value === null || Number.isNaN(value)) return (statusEl.textContent = "Enter a valid number to delete.");
       const idx = state.data.findIndex((x) => Number(x) === Number(value));
-      if (idx === -1) {
-        state.action = `Value ${value} not found`;
-      } else {
+      if (idx === -1) state.action = `Value ${value} not found`;
+      else {
         state.highlight = idx;
         state.data.splice(idx, 1);
         state.action = `Deleted ${value}`;
@@ -274,6 +350,7 @@ document.getElementById("pauseBtn").addEventListener("click", stopAutoPlay);
 window.addEventListener("resize", () => {
   resizeCanvas();
   renderStructure();
+  drawTraceScene();
 });
 
 resizeCanvas();

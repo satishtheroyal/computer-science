@@ -7,6 +7,7 @@ A standalone browser-based simulator that combines:
 - Memory representation panel.
 - Time and space complexity table.
 - Code + flowchart control-flow tracer (step and autoplay).
+- 3D execution-path canvas for both code path and flowchart path.
 
 ## Run locally
 
