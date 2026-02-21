@@ -10,6 +10,7 @@ A standalone browser-based simulator that combines:
 - Real code-path and flowchart-path visualization inside the main 3D view canvas.
 - 3D execution-path canvas for both code path and flowchart path.
 - Starts empty by default and shows live step-by-step visualization while operations run.
+- Complete per-structure simulation logic (Array, Linked List, Stack, Queue, BST) with structure-specific operations.
 
 ## Run locally
 
