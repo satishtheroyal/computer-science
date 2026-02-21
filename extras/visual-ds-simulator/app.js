@@ -26,8 +26,8 @@ const docs = {
   },
 };
 
-const INITIAL_DATA = [8, 3, 12, 1, 5];
-const state = { type: "array", data: [...INITIAL_DATA], highlight: null, action: "Init" };
+const INITIAL_DATA = [];
+const state = { type: "array", data: [...INITIAL_DATA], highlight: null, action: "Init (empty structure)", busy: false };
 const trace = { codeSteps: [], flowSteps: [], index: -1, timer: null };
 
 const canvas = document.getElementById("vizCanvas");
@@ -44,6 +44,14 @@ const valueInput = document.getElementById("valueInput");
 const codeTraceEl = document.getElementById("codeTrace");
 const flowTraceEl = document.getElementById("flowTrace");
 const flowStatusEl = document.getElementById("flowStatus");
+const opButtons = ["insertBtn", "deleteBtn", "searchBtn", "resetBtn", "stepBtn", "playBtn", "pauseBtn", "structureSelect"].map((id) => document.getElementById(id));
+
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function setBusy(busy) {
+  state.busy = busy;
+  opButtons.forEach((el) => { el.disabled = busy; });
+}
 
 function resizeCanvas() {
   canvas.width = sceneWrap.clientWidth;
@@ -87,15 +95,6 @@ function drawArrow(c, x1, y1, x2, y2, color = "#5eead4") {
   c.moveTo(x1, y1);
   c.lineTo(x2, y2);
   c.stroke();
-  const angle = Math.atan2(y2 - y1, x2 - x1);
-  const size = 7;
-  c.fillStyle = color;
-  c.beginPath();
-  c.moveTo(x2, y2);
-  c.lineTo(x2 - size * Math.cos(angle - Math.PI / 6), y2 - size * Math.sin(angle - Math.PI / 6));
-  c.lineTo(x2 - size * Math.cos(angle + Math.PI / 6), y2 - size * Math.sin(angle + Math.PI / 6));
-  c.closePath();
-  c.fill();
 }
 
 function drawLinear(mode) {
@@ -193,11 +192,7 @@ function drawTraceScene() {
   tctx.fillText("Code Path", 20, 24);
   tctx.fillText("Flowchart Path", 20, h / 2 + 24);
 
-  const laneData = [
-    { steps: trace.codeSteps, y: 45, color: "#2f4d9e" },
-    { steps: trace.flowSteps, y: h / 2 + 45, color: "#2f6d77" },
-  ];
-
+  const laneData = [{ steps: trace.codeSteps, y: 45, color: "#2f4d9e" }, { steps: trace.flowSteps, y: h / 2 + 45, color: "#2f6d77" }];
   laneData.forEach((lane) => {
     const n = Math.max(lane.steps.length, 1);
     const nodeW = 140;
@@ -207,9 +202,7 @@ function drawTraceScene() {
       const x = 20 + i * (nodeW + gap);
       const y = lane.y;
       drawTrace3DNode(x, y, nodeW, nodeH, `${i + 1}. ${step.slice(0, 20)}`, i === trace.index, lane.color);
-      if (i < lane.steps.length - 1) {
-        drawArrow(tctx, x + nodeW + 8, y + nodeH / 2, x + nodeW + gap - 4, y + nodeH / 2, i < trace.index ? "#5eead4" : "#4e5f8f");
-      }
+      if (i < lane.steps.length - 1) drawArrow(tctx, x + nodeW + 8, y + nodeH / 2, x + nodeW + gap - 4, y + nodeH / 2, i < trace.index ? "#5eead4" : "#4e5f8f");
     });
   });
 }
@@ -269,56 +262,85 @@ function readValueOrNull() {
   return Number.isNaN(parsed) ? NaN : parsed;
 }
 
-function applyOp(op) {
+async function animateLinearScan(target) {
+  for (let i = 0; i < state.data.length; i++) {
+    state.highlight = i;
+    state.action = `Scanning index ${i}...`;
+    renderStructure();
+    await wait(220);
+    if (Number(state.data[i]) === Number(target)) return i;
+  }
+  return -1;
+}
+
+async function applyOp(op) {
+  if (state.busy) return;
+  setBusy(true);
+
   const value = readValueOrNull();
   state.highlight = null;
   let found = false;
 
-  if (op === "insert") {
-    if (value === null || Number.isNaN(value)) return (statusEl.textContent = "Enter a valid number for insert.");
-    state.data.push(value);
-    state.action = `Inserted ${value}`;
-    found = true;
-  } else if (op === "delete") {
-    if (state.data.length === 0) return (statusEl.textContent = "Nothing to delete; structure is empty.");
-    if (state.type === "stack") {
+  try {
+    if (op === "insert") {
+      if (value === null || Number.isNaN(value)) return (statusEl.textContent = "Enter a valid number for insert."), setBusy(false);
+      state.action = `Preparing to insert ${value}...`;
+      renderStructure();
+      await wait(200);
+      state.data.push(value);
       state.highlight = state.data.length - 1;
-      state.action = `Popped ${state.data.pop()}`;
+      state.action = `Inserted ${value}`;
       found = true;
-    } else if (state.type === "queue") {
-      state.highlight = 0;
-      state.action = `Dequeued ${state.data.shift()}`;
-      found = true;
-    } else {
-      if (value === null || Number.isNaN(value)) return (statusEl.textContent = "Enter a valid number to delete.");
-      const idx = state.data.findIndex((x) => Number(x) === Number(value));
-      if (idx === -1) state.action = `Value ${value} not found`;
-      else {
-        state.highlight = idx;
-        state.data.splice(idx, 1);
-        state.action = `Deleted ${value}`;
+    } else if (op === "delete") {
+      if (state.data.length === 0) return (statusEl.textContent = "Nothing to delete; structure is empty."), setBusy(false);
+      if (state.type === "stack") {
+        state.highlight = state.data.length - 1;
+        state.action = "Popping top...";
+        renderStructure();
+        await wait(220);
+        state.action = `Popped ${state.data.pop()}`;
         found = true;
+      } else if (state.type === "queue") {
+        state.highlight = 0;
+        state.action = "Dequeuing front...";
+        renderStructure();
+        await wait(220);
+        state.action = `Dequeued ${state.data.shift()}`;
+        found = true;
+      } else {
+        if (value === null || Number.isNaN(value)) return (statusEl.textContent = "Enter a valid number to delete."), setBusy(false);
+        const idx = await animateLinearScan(value);
+        if (idx === -1) state.action = `Value ${value} not found`;
+        else {
+          state.highlight = idx;
+          await wait(150);
+          state.data.splice(idx, 1);
+          state.action = `Deleted ${value}`;
+          found = true;
+        }
       }
+    } else if (op === "search") {
+      if (value === null || Number.isNaN(value)) return (statusEl.textContent = "Enter a valid number to search."), setBusy(false);
+      const idx = await animateLinearScan(value);
+      state.highlight = idx >= 0 ? idx : null;
+      found = idx >= 0;
+      state.action = found ? `Found ${value} at position ${idx}` : `${value} not found`;
     }
-  } else if (op === "search") {
-    if (value === null || Number.isNaN(value)) return (statusEl.textContent = "Enter a valid number to search.");
-    const idx = state.data.findIndex((x) => Number(x) === Number(value));
-    state.highlight = idx >= 0 ? idx : null;
-    found = idx >= 0;
-    state.action = found ? `Found ${value} at position ${idx}` : `${value} not found`;
-  }
 
-  stopAutoPlay();
-  const t = buildTrace(op, value, found);
-  setTrace(t.codeSteps, t.flowSteps);
-  renderStructure();
+    stopAutoPlay();
+    const t = buildTrace(op, value, found);
+    setTrace(t.codeSteps, t.flowSteps);
+    renderStructure();
+  } finally {
+    setBusy(false);
+  }
 }
 
 document.getElementById("structureSelect").addEventListener("change", (e) => {
   state.type = e.target.value;
   state.data = [...INITIAL_DATA];
   state.highlight = null;
-  state.action = `Switched to ${state.type}`;
+  state.action = `Switched to ${state.type} (empty)`;
   stopAutoPlay();
   setTrace([], []);
   renderStructure();
@@ -330,7 +352,7 @@ document.getElementById("searchBtn").addEventListener("click", () => applyOp("se
 document.getElementById("resetBtn").addEventListener("click", () => {
   state.data = [...INITIAL_DATA];
   state.highlight = null;
-  state.action = "Reset";
+  state.action = "Reset to empty";
   stopAutoPlay();
   setTrace([], []);
   renderStructure();

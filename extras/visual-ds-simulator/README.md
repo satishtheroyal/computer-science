@@ -8,6 +8,7 @@ A standalone browser-based simulator that combines:
 - Time and space complexity table.
 - Code + flowchart control-flow tracer (step and autoplay).
 - 3D execution-path canvas for both code path and flowchart path.
+- Starts empty by default and shows live step-by-step visualization while operations run.
 
 ## Run locally
 
