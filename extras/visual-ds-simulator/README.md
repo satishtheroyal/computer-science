@@ -33,6 +33,7 @@ Re-started as a **feature-by-feature** algorithm visualizer with slower, explain
 - Code view shows full algorithm lines and highlights control flow line-by-line.
 - Transition speed control slider lets users slow down or speed up execution animations.
 - Added an Array Operation runner (insert/delete/search/access/traverse/randomize/reset) inspired by the requested visualizer workflow.
+- Added a Linked-list operation runner mode (insertHead/insertTail/delete/search/reverse/reset) with animated node-flow behavior.
 - Orientation adapts by structure type (horizontal linked list/queue, vertical stack) with more prominent DS-specific memory diagrams.
 - Stacks show different visual forms: array stack as vertical pile, linked stack as node + next-reference chain.
 - Transitions are intentionally slow and smooth for teaching.

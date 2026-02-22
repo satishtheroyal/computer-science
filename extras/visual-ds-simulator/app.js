@@ -1204,6 +1204,109 @@ const arrayVisualizer = new ArrayVisualizer(() => state.values, (arr) => {
   renderPanels();
 });
 
+
+class LinkedListVisualizer {
+  constructor(getList, setList) {
+    this.getList = getList;
+    this.setList = setList;
+    this.initial = [38, 12, 5, 77];
+  }
+
+  async animate(next, hi = -1) {
+    const curr = [...this.getList()];
+    const frames = Math.max(14, Math.round(30 / state.speed));
+    for (let f = 1; f <= frames; f++) {
+      const t = easeInOutCubic(f / frames);
+      const interp = next.map((v, i) => {
+        const sv = curr[i] ?? v;
+        return sv + ((v - sv) * t);
+      });
+      draw3DMemory(interp, hi, -1);
+      await sleep(Math.max(8, Math.round(20 / state.speed)));
+    }
+    this.setList([...next]);
+  }
+
+  async insertHead({ value }, log) {
+    const arr = [...this.getList()];
+    log(`Insert head ${value}`);
+    arr.unshift(value);
+    await this.animate(arr, 0);
+  }
+
+  async insertTail({ value }, log) {
+    const arr = [...this.getList()];
+    log(`Insert tail ${value}`);
+    arr.push(value);
+    await this.animate(arr, arr.length - 1);
+  }
+
+  async deleteValue({ value }, log) {
+    const arr = [...this.getList()];
+    if (!arr.length) { log('Delete failed: linked list is empty.'); return; }
+    const idx = arr.indexOf(value);
+    if (idx < 0) { log(`Delete failed: ${value} not found.`); return; }
+    log(`Delete node value ${value}`);
+    arr.splice(idx, 1);
+    await this.animate(arr, Math.max(0, idx - 1));
+  }
+
+  async search({ value }, log) {
+    const arr = [...this.getList()];
+    log(`Searching linked list for ${value}`);
+    for (let i = 0; i < arr.length; i++) {
+      draw3DMemory(arr, i, -1);
+      log(`Checking node ${i}: ${arr[i]}`);
+      await sleep(Math.max(70, Math.round(250 / state.speed)));
+      if (arr[i] === value) { log(`Found ${value} at node ${i}`); return; }
+    }
+    log(`Value ${value} not found.`);
+  }
+
+  async reverse(_params, log) {
+    const arr = [...this.getList()];
+    if (!arr.length) { log('Reverse skipped: linked list is empty.'); return; }
+    log('Reversing linked list links...');
+    const rev = [...arr].reverse();
+    await this.animate(rev, 0);
+  }
+
+  async reset(_params, log) {
+    log('Reset linked list to initial nodes.');
+    await this.animate([...this.initial], -1);
+  }
+}
+
+const linkedListVisualizer = new LinkedListVisualizer(() => state.values, (arr) => {
+  state.values = arr;
+  state.steps = [];
+  state.stepIndex = -1;
+  renderPanels();
+});
+
+function configureOperationMenu() {
+  const linked = state.algo.includes('linkedList');
+  const ops = linked
+    ? [
+        ['insertHead', 'Insert Head'],
+        ['insertTail', 'Insert Tail'],
+        ['deleteValue', 'Delete Value'],
+        ['search', 'Search Value'],
+        ['reverse', 'Reverse'],
+        ['reset', 'Reset'],
+      ]
+    : [
+        ['insert', 'Insert'],
+        ['delete', 'Delete'],
+        ['search', 'Search'],
+        ['access', 'Access'],
+        ['traverse', 'Traverse'],
+        ['randomize', 'Randomize'],
+        ['reset', 'Reset'],
+      ];
+  opSelect.innerHTML = ops.map(([v, t]) => `<option value="${v}">${t}</option>`).join('');
+}
+
 function isPositionAlgo(algo) {
   return algo.includes('Insert') || algo.includes('Delete') || algo.includes('Update') || algo.startsWith('deque');
 }
@@ -1349,12 +1452,17 @@ runOpBtn.addEventListener('click', async () => {
     statusEl.textContent = msg;
   };
 
-  if (algoMeta[state.algo].type === 'ds') {
-    statusEl.textContent = 'Direct operation runner is for array visualization mode; use Load/Step for DS algorithms.';
-    return;
-  }
-
   try {
+    if (state.algo.includes('linkedList')) {
+      if (op === 'insertHead') await linkedListVisualizer.insertHead({ value }, log);
+      else if (op === 'insertTail') await linkedListVisualizer.insertTail({ value }, log);
+      else if (op === 'deleteValue') await linkedListVisualizer.deleteValue({ value }, log);
+      else if (op === 'search') await linkedListVisualizer.search({ value }, log);
+      else if (op === 'reverse') await linkedListVisualizer.reverse({}, log);
+      else if (op === 'reset') await linkedListVisualizer.reset({}, log);
+      return;
+    }
+
     if (op === 'insert') await arrayVisualizer.insert({ value, index }, log);
     else if (op === 'delete') await arrayVisualizer.delete({ index }, log);
     else if (op === 'search') await arrayVisualizer.search({ value }, log);
@@ -1370,6 +1478,7 @@ runOpBtn.addEventListener('click', async () => {
 algoSelect.addEventListener('change', () => {
   state.algo = algoSelect.value;
   refreshSetupFields();
+  configureOperationMenu();
   renderPanels();
 });
 
@@ -1380,5 +1489,6 @@ window.addEventListener('resize', () => {
 
 speedLabel.textContent = `Speed: ${state.speed.toFixed(1)}x`;
 refreshSetupFields();
+configureOperationMenu();
 resize();
 renderPanels();
