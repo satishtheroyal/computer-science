@@ -12,28 +12,37 @@ const docs = {
   linkedListSinglyInsert: { lines: ['head -> first node', 'create new node(target)', 'go to tail node', 'tail.next = new node', 'update links', 'end'] },
   linkedListSinglyDelete: { lines: ['head -> first node', 'find node == target', 'prev.next = curr.next', 'disconnect curr node', 'update links', 'end'] },
   linkedListSinglySearch: { lines: ['head -> first node', 'while curr != null', 'if curr.value == target', 'return found position', 'curr = curr.next', 'end'] },
+  linkedListSinglyUpdate: { lines: ['find node == target', 'if found, node.value = newValue', 'maintain next links', 'report updated node', 'continue/finish', 'end'] },
   linkedListDoublyInsert: { lines: ['head / tail pointers', 'create new node(target)', 'tail.next = node', 'node.prev = tail', 'tail = node', 'end'] },
   linkedListDoublyDelete: { lines: ['find node == target', 'fix prev.next link', 'fix next.prev link', 'update head/tail if needed', 'remove node', 'end'] },
   linkedListDoublySearch: { lines: ['curr = head', 'while curr != null', 'if curr.value == target', 'return found position', 'curr = curr.next', 'end'] },
+  linkedListDoublyUpdate: { lines: ['find node == target', 'if found, node.value = newValue', 'keep prev/next links intact', 'report updated node', 'continue/finish', 'end'] },
   linkedListCircularInsert: { lines: ['create node(target)', 'if empty set node->node', 'else find tail', 'tail.next = node', 'node.next = head', 'end'] },
   linkedListCircularDelete: { lines: ['find target with do-while', 'if deleting head, move head', 'bypass target node', 'maintain tail.next=head', 'remove node', 'end'] },
   linkedListCircularSearch: { lines: ['curr = head', 'do until back to head', 'if curr.value == target', 'return found position', 'curr = curr.next', 'end'] },
+  linkedListCircularUpdate: { lines: ['do-while traverse for target', 'if found update node.value', 'preserve circular links', 'report updated node', 'stop when back to head', 'end'] },
   treeBFS: { lines: ['build tree nodes', 'enqueue root', 'while queue not empty', 'dequeue + visit node', 'enqueue children', 'end'] },
   graphBFS: { lines: ['build adjacency list', 'enqueue start + mark visited', 'while queue not empty', 'dequeue vertex', 'enqueue unvisited neighbors', 'end'] },
   hashingLinearProbe: { lines: ['init table with empty slots', 'hash(key) = key % size', 'if collision, probe next slot', 'insert / search in probed slot', 'repeat until found/empty', 'end'] },
   stackArrayPush: { lines: ['top initialized', 'if full -> overflow', 'top = top + 1', 'stack[top] = target', 'report pushed', 'end'] },
   stackArrayPop: { lines: ['if empty -> underflow', 'value = stack[top]', 'top = top - 1', 'return value', 'update stack', 'end'] },
   stackArrayPeek: { lines: ['if empty -> no top', 'read stack[top]', 'return top value', 'no mutation', 'report state', 'end'] },
+  stackArrayUpdateTop: { lines: ['if empty -> underflow', 'read stack[top]', 'stack[top] = target', 'confirm updated top', 'return state', 'end'] },
   stackLinkedPush: { lines: ['create node(target)', 'node.next = top', 'top = node', 'update links', 'report pushed', 'end'] },
   stackLinkedPop: { lines: ['if top == null', 'value = top.value', 'top = top.next', 'disconnect old top', 'return value', 'end'] },
+  stackLinkedUpdateTop: { lines: ['if top == null', 'read top node', 'top.value = target', 'keep next pointer', 'return state', 'end'] },
   queueLinearEnqueue: { lines: ['if full -> overflow', 'if empty init front', 'rear = rear + 1', 'queue[rear] = target', 'report enqueue', 'end'] },
   queueLinearDequeue: { lines: ['if empty -> underflow', 'value = queue[front]', 'front = front + 1', 'if front>rear reset', 'return value', 'end'] },
+  queueLinearUpdateFront: { lines: ['if empty -> underflow', 'read queue[front]', 'queue[front] = target', 'front index unchanged', 'return state', 'end'] },
   queueCircularEnqueue: { lines: ['next = (rear+1)%size', 'if next==front full', 'rear = next', 'queue[rear] = target', 'keep circular links', 'end'] },
   queueCircularDequeue: { lines: ['if empty -> underflow', 'value = queue[front]', 'front = (front+1)%size', 'if became empty reset', 'return value', 'end'] },
+  queueCircularUpdateFront: { lines: ['if empty -> underflow', 'read queue[front]', 'queue[front] = target', 'front remains same', 'return state', 'end'] },
   dequePushFront: { lines: ['if full -> overflow', 'front = (front-1+size)%size', 'deque[front] = target', 'if empty sync rear', 'report push-front', 'end'] },
   dequePushBack: { lines: ['if full -> overflow', 'rear = (rear+1)%size', 'deque[rear] = target', 'if empty sync front', 'report push-back', 'end'] },
   dequePopFront: { lines: ['if empty -> underflow', 'value = deque[front]', 'front = (front+1)%size', 'if became empty reset', 'return value', 'end'] },
   dequePopBack: { lines: ['if empty -> underflow', 'value = deque[rear]', 'rear = (rear-1+size)%size', 'if became empty reset', 'return value', 'end'] },
+  dequeUpdateFront: { lines: ['if empty -> underflow', 'read deque[front]', 'deque[front] = target', 'front index unchanged', 'return state', 'end'] },
+  dequeUpdateBack: { lines: ['if empty -> underflow', 'read deque[rear]', 'deque[rear] = target', 'rear index unchanged', 'return state', 'end'] },
 };
 
 const algoMeta = {
@@ -50,28 +59,37 @@ const algoMeta = {
   linkedListSinglyInsert: { type: 'ds', insight: 'Singly linked-list insertion updates only next pointer.', targetRequired: true },
   linkedListSinglyDelete: { type: 'ds', insight: 'Singly linked-list delete reconnects previous node to next node.', targetRequired: true },
   linkedListSinglySearch: { type: 'ds', insight: 'Singly linked-list search walks one node at a time.', targetRequired: true },
+  linkedListSinglyUpdate: { type: 'ds', insight: 'Singly linked-list update modifies value after search.', targetRequired: true },
   linkedListDoublyInsert: { type: 'ds', insight: 'Doubly linked-list insert updates next and prev pointers.', targetRequired: true },
   linkedListDoublyDelete: { type: 'ds', insight: 'Doubly linked-list delete fixes links on both sides.', targetRequired: true },
   linkedListDoublySearch: { type: 'ds', insight: 'Doubly linked-list search traverses from head using next pointers.', targetRequired: true },
+  linkedListDoublyUpdate: { type: 'ds', insight: 'Doubly linked-list update keeps bidirectional links unchanged.', targetRequired: true },
   linkedListCircularInsert: { type: 'ds', insight: 'Circular linked-list insert preserves tail.next = head.', targetRequired: true },
   linkedListCircularDelete: { type: 'ds', insight: 'Circular linked-list delete must keep the ring connected.', targetRequired: true },
   linkedListCircularSearch: { type: 'ds', insight: 'Circular linked-list search stops when traversal returns to head.', targetRequired: true },
+  linkedListCircularUpdate: { type: 'ds', insight: 'Circular linked-list update changes node value without breaking cycle.', targetRequired: true },
   treeBFS: { type: 'ds', insight: 'Tree BFS visits nodes level-by-level using a queue.', targetRequired: false },
   graphBFS: { type: 'ds', insight: 'Graph BFS explores breadth-first from a start vertex.', targetRequired: false },
   hashingLinearProbe: { type: 'ds', insight: 'Linear probing resolves collisions by checking next slots.', targetRequired: true },
   stackArrayPush: { type: 'ds', insight: 'Array stack push writes at incremented top index.', targetRequired: true },
   stackArrayPop: { type: 'ds', insight: 'Array stack pop removes and returns the current top.', targetRequired: false },
   stackArrayPeek: { type: 'ds', insight: 'Array stack peek reads top without modifying stack.', targetRequired: false },
+  stackArrayUpdateTop: { type: 'ds', insight: 'Array stack update rewrites top element.', targetRequired: true },
   stackLinkedPush: { type: 'ds', insight: 'Linked stack push prepends node at top pointer.', targetRequired: true },
   stackLinkedPop: { type: 'ds', insight: 'Linked stack pop advances top to top.next.', targetRequired: false },
+  stackLinkedUpdateTop: { type: 'ds', insight: 'Linked stack update rewrites top node value.', targetRequired: true },
   queueLinearEnqueue: { type: 'ds', insight: 'Linear queue enqueue appends at rear.', targetRequired: true },
   queueLinearDequeue: { type: 'ds', insight: 'Linear queue dequeue removes from front.', targetRequired: false },
+  queueLinearUpdateFront: { type: 'ds', insight: 'Linear queue update rewrites front element.', targetRequired: true },
   queueCircularEnqueue: { type: 'ds', insight: 'Circular queue enqueue wraps index using modulo.', targetRequired: true },
   queueCircularDequeue: { type: 'ds', insight: 'Circular queue dequeue advances front circularly.', targetRequired: false },
+  queueCircularUpdateFront: { type: 'ds', insight: 'Circular queue update rewrites current front.', targetRequired: true },
   dequePushFront: { type: 'ds', insight: 'Deque push-front inserts at front end.', targetRequired: true },
   dequePushBack: { type: 'ds', insight: 'Deque push-back inserts at rear end.', targetRequired: true },
   dequePopFront: { type: 'ds', insight: 'Deque pop-front removes from front end.', targetRequired: false },
   dequePopBack: { type: 'ds', insight: 'Deque pop-back removes from rear end.', targetRequired: false },
+  dequeUpdateFront: { type: 'ds', insight: 'Deque update-front rewrites front element.', targetRequired: true },
+  dequeUpdateBack: { type: 'ds', insight: 'Deque update-back rewrites rear element.', targetRequired: true },
 };
 
 const state = {
@@ -423,6 +441,20 @@ function generateDsSteps(algo, input, target) {
       return out;
     }
 
+    if (algo.endsWith('Update')) {
+      for (let i = 0; i < arr.length; i++) {
+        pushStep(out, arr, i, -1, `Scan node ${i}`, 1, `Check if node value ${arr[i]} matches old value ${target}.`);
+        if (arr[i] === target) {
+          arr[i] = target + 100;
+          pushStep(out, arr, i, -1, `Update node ${i} value`, 2, `Node updated from ${target} to ${target + 100} for visible update demo.`);
+          pushStep(out, arr, -1, -1, 'Update operation complete', 5, 'Linked-list update finished.');
+          return out;
+        }
+      }
+      pushStep(out, arr, -1, -1, 'Target not found', 5, 'No node matched update target value.');
+      return out;
+    }
+
     if (algo.endsWith('Search')) {
       for (let i = 0; i < arr.length; i++) {
         pushStep(out, arr, i, -1, `Visit node ${i}`, 1, `Compare node value ${arr[i]} with target ${target}.`);
@@ -530,6 +562,17 @@ function generateDsSteps(algo, input, target) {
       pushStep(out, st, -1, -1, 'Push complete', 5, 'Stack push operation finished.');
       return out;
     }
+    if (algo === 'stackArrayUpdateTop') {
+      if (!st.length) {
+        pushStep(out, st, -1, -1, 'Underflow', 1, 'Cannot update top of empty stack.');
+        return out;
+      }
+      const old = st[st.length - 1];
+      st[st.length - 1] = target;
+      pushStep(out, st, st.length - 1, -1, `Update top ${old} -> ${target}`, 2, 'Replace top value while keeping stack size unchanged.');
+      pushStep(out, st, -1, -1, 'Update complete', 5, 'Stack top update completed.');
+      return out;
+    }
     if (!st.length) {
       pushStep(out, st, -1, -1, 'Underflow', 1, 'Cannot pop/peek from an empty stack.');
       return out;
@@ -554,6 +597,28 @@ function generateDsSteps(algo, input, target) {
       pushStep(out, st, -1, -1, 'Push complete', 5, 'Linked-stack push completed.');
       return out;
     }
+    if (algo === 'stackArrayUpdateTop') {
+      if (!st.length) {
+        pushStep(out, st, -1, -1, 'Underflow', 1, 'Cannot update top of empty stack.');
+        return out;
+      }
+      const old = st[st.length - 1];
+      st[st.length - 1] = target;
+      pushStep(out, st, st.length - 1, -1, `Update top ${old} -> ${target}`, 2, 'Replace top value while keeping stack size unchanged.');
+      pushStep(out, st, -1, -1, 'Update complete', 5, 'Stack top update completed.');
+      return out;
+    }
+    if (algo === 'stackLinkedUpdateTop') {
+      if (!st.length) {
+        pushStep(out, st, -1, -1, 'Underflow', 1, 'Cannot update top of empty linked stack.');
+        return out;
+      }
+      const old = st[0];
+      st[0] = target;
+      pushStep(out, st, 0, -1, `Update top ${old} -> ${target}`, 2, 'Rewrite top node value and keep next links same.');
+      pushStep(out, st, -1, -1, 'Update complete', 5, 'Linked-stack top update completed.');
+      return out;
+    }
     if (!st.length) {
       pushStep(out, st, -1, -1, 'Underflow', 1, 'Cannot pop from an empty linked stack.');
       return out;
@@ -571,6 +636,17 @@ function generateDsSteps(algo, input, target) {
       q.push(target);
       pushStep(out, q, q.length - 1, -1, `Enqueue ${target}`, 3, 'Append value at queue rear.');
       pushStep(out, q, -1, -1, 'Enqueue complete', 5, 'Linear queue enqueue completed.');
+      return out;
+    }
+    if (algo === 'queueLinearUpdateFront') {
+      if (!q.length) {
+        pushStep(out, q, -1, -1, 'Underflow', 1, 'Cannot update front of empty queue.');
+        return out;
+      }
+      const old = q[0];
+      q[0] = target;
+      pushStep(out, q, 0, -1, `Update front ${old} -> ${target}`, 2, 'Rewrite front element without changing queue length.');
+      pushStep(out, q, -1, -1, 'Update complete', 5, 'Linear queue front update completed.');
       return out;
     }
     if (!q.length) {
@@ -605,6 +681,17 @@ function generateDsSteps(algo, input, target) {
       pushStep(out, buf, front, rear, 'Enqueue complete', 5, 'Circular queue enqueue completed.');
       return out;
     }
+    if (algo === 'queueCircularUpdateFront') {
+      if (rear === -1 || (buf[front] === 0 && front === ((rear + 1) % size))) {
+        pushStep(out, buf, front, rear, 'Underflow', 1, 'Cannot update front in empty circular queue.');
+        return out;
+      }
+      const old = buf[front];
+      buf[front] = target;
+      pushStep(out, buf, front, rear, `Update front ${old} -> ${target}`, 2, 'Rewrite current front slot and keep circular indices unchanged.');
+      pushStep(out, buf, front, rear, 'Update complete', 5, 'Circular queue front update completed.');
+      return out;
+    }
     if (rear === -1 || (buf[front] === 0 && front === ((rear + 1) % size))) {
       pushStep(out, buf, front, rear, 'Underflow', 1, 'Queue is empty.');
       return out;
@@ -630,6 +717,28 @@ function generateDsSteps(algo, input, target) {
       dq.push(target);
       pushStep(out, dq, dq.length - 1, -1, `Push back ${target}`, 2, 'Insert value at rear side.');
       pushStep(out, dq, -1, -1, 'Operation complete', 5, 'Deque push-back completed.');
+      return out;
+    }
+    if (algo === 'dequeUpdateFront') {
+      if (!dq.length) {
+        pushStep(out, dq, -1, -1, 'Underflow', 1, 'Deque is empty.');
+        return out;
+      }
+      const old = dq[0];
+      dq[0] = target;
+      pushStep(out, dq, 0, -1, `Update front ${old} -> ${target}`, 2, 'Rewrite front value in-place.');
+      pushStep(out, dq, -1, -1, 'Operation complete', 5, 'Deque update-front completed.');
+      return out;
+    }
+    if (algo === 'dequeUpdateBack') {
+      if (!dq.length) {
+        pushStep(out, dq, -1, -1, 'Underflow', 1, 'Deque is empty.');
+        return out;
+      }
+      const old = dq[dq.length - 1];
+      dq[dq.length - 1] = target;
+      pushStep(out, dq, dq.length - 1, -1, `Update back ${old} -> ${target}`, 2, 'Rewrite rear value in-place.');
+      pushStep(out, dq, -1, -1, 'Operation complete', 5, 'Deque update-back completed.');
       return out;
     }
     if (!dq.length) {
@@ -671,8 +780,7 @@ function drawBar3D(x, y, w, h, color, value, idx) {
   ctx.fillText(`i:${idx}`, x + w / 2, y + h + 15);
 }
 
-function draw3DMemory(arr, a = -1, b = -1) {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+function drawLinearBars(arr, a, b) {
   const baseY = canvas.height * 0.74;
   const max = Math.max(1, ...arr.map((n) => Math.abs(n)));
   const width = Math.max(24, Math.min(48, (canvas.width - 90) / Math.max(arr.length, 1) - 8));
@@ -682,10 +790,85 @@ function draw3DMemory(arr, a = -1, b = -1) {
   arr.forEach((v, i) => {
     const h = 24 + (Math.abs(v) / max) * (canvas.height * 0.55);
     const y = baseY - h;
-    const active = i === a || i === b;
-    drawBar3D(x, y, width, h, active ? '#5eead4' : '#4f8cff', v, i);
+    drawBar3D(x, y, width, h, (i === a || i === b) ? '#5eead4' : '#4f8cff', v, i);
     x += width + gap;
   });
+}
+
+function drawLinkedListDiagram(arr, a, doubly = false, circular = false) {
+  const boxW = 70;
+  const boxH = 48;
+  const gap = 26;
+  const total = arr.length * boxW + Math.max(0, arr.length - 1) * gap;
+  let x = Math.max(20, (canvas.width - total) / 2);
+  const y = canvas.height * 0.42;
+  arr.forEach((v, i) => {
+    drawBar3D(x, y, boxW, boxH, i === a ? '#5eead4' : '#4f8cff', v, i);
+    if (i < arr.length - 1) {
+      ctx.strokeStyle = '#9ec2ff';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x + boxW + 4, y + boxH / 2); ctx.lineTo(x + boxW + gap - 6, y + boxH / 2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x + boxW + gap - 6, y + boxH / 2); ctx.lineTo(x + boxW + gap - 14, y + boxH / 2 - 5); ctx.lineTo(x + boxW + gap - 14, y + boxH / 2 + 5); ctx.closePath(); ctx.fillStyle = '#9ec2ff'; ctx.fill();
+      if (doubly) {
+        ctx.beginPath(); ctx.moveTo(x + boxW + gap - 6, y + boxH / 2 + 10); ctx.lineTo(x + boxW + 4, y + boxH / 2 + 10); ctx.stroke();
+      }
+    }
+    x += boxW + gap;
+  });
+  if (circular && arr.length > 1) {
+    ctx.strokeStyle = '#86f3de';
+    ctx.beginPath();
+    ctx.moveTo((canvas.width + total) / 2 - boxW - gap + 40, y + boxH + 8);
+    ctx.quadraticCurveTo(canvas.width / 2, y + boxH + 50, (canvas.width - total) / 2 + 22, y + boxH + 8);
+    ctx.stroke();
+  }
+}
+
+function drawStackDiagram(arr, a) {
+  const boxW = 120;
+  const boxH = 34;
+  const x = (canvas.width - boxW) / 2;
+  let y = canvas.height * 0.76;
+  for (let i = 0; i < arr.length; i++) {
+    drawBar3D(x, y - boxH, boxW, boxH, i === a ? '#5eead4' : '#4f8cff', arr[i], i);
+    y -= boxH + 8;
+  }
+}
+
+function drawQueueDiagram(arr, a, circular = false) {
+  const boxW = 62;
+  const boxH = 44;
+  const gap = 10;
+  const total = arr.length * boxW + Math.max(0, arr.length - 1) * gap;
+  let x = Math.max(18, (canvas.width - total) / 2);
+  const y = canvas.height * 0.5;
+  arr.forEach((v, i) => {
+    drawBar3D(x, y, boxW, boxH, i === a ? '#5eead4' : '#4f8cff', v, i);
+    x += boxW + gap;
+  });
+  if (circular && arr.length > 1) {
+    ctx.strokeStyle = '#86f3de';
+    ctx.beginPath();
+    ctx.moveTo((canvas.width + total) / 2 - 8, y + boxH + 15);
+    ctx.quadraticCurveTo(canvas.width / 2, y + boxH + 55, (canvas.width - total) / 2 + 8, y + boxH + 15);
+    ctx.stroke();
+  }
+}
+
+function draw3DMemory(arr, a = -1, b = -1) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const algo = state.algo;
+
+  if (algo.includes('linkedList')) {
+    drawLinkedListDiagram(arr, a, algo.includes('Doubly'), algo.includes('Circular'));
+  } else if (algo.startsWith('stack')) {
+    drawStackDiagram(arr, a >= 0 ? a : arr.length - 1);
+  } else if (algo.startsWith('queue') || algo.startsWith('deque')) {
+    drawQueueDiagram(arr, a >= 0 ? a : 0, algo.includes('Circular'));
+  } else {
+    drawLinearBars(arr, a, b);
+  }
+
   ctx.fillStyle = '#a9bcff';
   ctx.font = 'bold 13px sans-serif';
   ctx.fillText('3D Memory Visual', 12, 22);
@@ -858,6 +1041,16 @@ function renderPanels() {
   updateButtons();
 }
 
+function getOrientationLabel(algo) {
+  if (algo.includes('linkedList')) return 'Horizontal node-link orientation';
+  if (algo.startsWith('stack')) return 'Vertical stack orientation';
+  if (algo.startsWith('queue') || algo.startsWith('deque')) return 'Horizontal queue/deque orientation';
+  if (algo === 'treeBFS') return 'Tree level orientation';
+  if (algo === 'graphBFS') return 'Graph traversal orientation';
+  if (algo === 'hashingLinearProbe') return 'Hash-table slot orientation';
+  return 'Array/bar memory orientation';
+}
+
 function stopAutoPlay() {
   if (state.autoTimer !== null) {
     clearInterval(state.autoTimer);
@@ -883,7 +1076,7 @@ function loadSimulation() {
 
   state.steps = generateSteps(state.algo, state.values, state.target);
   state.stepIndex = 0;
-  statusEl.textContent = `Loaded ${state.algo} (${algoMeta[state.algo].type}) with ${state.values.length} values${algoMeta[state.algo].targetRequired ? `, target=${state.target}` : ''}. Use Prev/Next/Auto Play/Pause operations.`;
+  statusEl.textContent = `Loaded ${state.algo} (${algoMeta[state.algo].type}) with ${state.values.length} values${algoMeta[state.algo].targetRequired ? `, target=${state.target}` : ''}. ${getOrientationLabel(state.algo)}. Use Prev/Next/Auto Play/Pause operations.`;
   renderPanels();
 }
 

@@ -7,10 +7,10 @@ Re-started as a **feature-by-feature** algorithm visualizer with slower, explain
   - Sorting: Bubble / Selection / Insertion / Merge / Quick / Heap / Shell
   - Searching: Linear Search / Binary Search / Jump Search
   - Data structures / operations:
-    - Linked List (singly/doubly/circular): insert, delete, search
-    - Stacks: array-based + linked-list push/pop/peek
-    - Queues: linear + circular enqueue/dequeue
-    - Deque: push/pop front/back
+    - Linked List (singly/doubly/circular): insert, delete, search, update
+    - Stacks: array-based + linked-list push/pop/peek/update-top
+    - Queues: linear + circular enqueue/dequeue/update-front
+    - Deque: push/pop front/back + update-front/update-back
     - Tree BFS Traversal
     - Graph BFS Traversal
     - Hashing with Linear Probing (insert + search)
@@ -29,6 +29,7 @@ Re-started as a **feature-by-feature** algorithm visualizer with slower, explain
   - technique insight
   - active code line
 - Code view shows algorithm lines and highlights control flow line-by-line.
+- Orientation adapts by structure type (horizontal linked list/queue, vertical stack) with more prominent DS-specific memory diagrams.
 - Transitions are intentionally slow and smooth for teaching.
 
 ## Run
