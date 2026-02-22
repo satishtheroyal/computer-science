@@ -12,6 +12,7 @@ Re-started as a **feature-by-feature** learning project focused first on sorting
   - current step details.
 - Main canvas shows a 3D-style memory visualization of values.
 - User presses **Next Step** to walk through execution step-by-step.
+- Desktop layout uses a single-screen landscape orientation so visuals + panels are visible together (no scrolling).
 
 ## Run
 
