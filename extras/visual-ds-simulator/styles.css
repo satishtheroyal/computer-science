@@ -60,3 +60,6 @@ small { color: var(--accent); }
 }
 
 button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+#speedRange { width: 130px; }
+#speedLabel { align-self: center; color: #9ec2ff; min-width: 92px; }

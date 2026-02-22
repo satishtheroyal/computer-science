@@ -102,6 +102,7 @@ const state = {
   stepIndex: -1,
   isAnimating: false,
   autoTimer: null,
+  speed: 1,
 };
 
 const canvas = document.getElementById('vizCanvas');
@@ -121,6 +122,8 @@ const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 const playBtn = document.getElementById('playBtn');
 const pauseBtn = document.getElementById('pauseBtn');
+const speedRange = document.getElementById('speedRange');
+const speedLabel = document.getElementById('speedLabel');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
@@ -994,34 +997,37 @@ function drawCodeFlow(step) {
   fctx.fillStyle = '#0c1430';
   fctx.fillRect(0, 0, flowCanvas.width, flowCanvas.height);
 
-  const padX = 18;
+  const padX = 14;
   const padY = 18;
-  const lineHeight = 44;
   const gutterW = 42;
+  const rowGap = 6;
 
   fctx.fillStyle = '#7e94d1';
   fctx.font = '12px monospace';
   fctx.textAlign = 'left';
-  fctx.fillText('// Code control-flow view', padX, 12);
+  fctx.fillText('// Full code view with execution highlight', padX, 12);
 
+  let y = padY;
   lines.forEach((codeLine, i) => {
-    const y = padY + (i * lineHeight);
+    fctx.font = '11px monospace';
+    const wrapped = wrapLines(fctx, codeLine, flowCanvas.width - (padX * 2) - gutterW - 12);
+    const blockH = Math.max(30, 16 + (wrapped.length * 12));
+
     const isActive = i === active;
     const isVisited = i < active;
 
     fctx.fillStyle = isActive ? '#5eead4' : isVisited ? '#213d74' : '#162449';
-    fctx.fillRect(padX, y, flowCanvas.width - (padX * 2), lineHeight - 7);
+    fctx.fillRect(padX, y, flowCanvas.width - (padX * 2), blockH);
 
     fctx.strokeStyle = isActive ? '#5eead4' : '#2f4d89';
     fctx.lineWidth = isActive ? 2 : 1;
-    fctx.strokeRect(padX, y, flowCanvas.width - (padX * 2), lineHeight - 7);
+    fctx.strokeRect(padX, y, flowCanvas.width - (padX * 2), blockH);
 
     fctx.fillStyle = isActive ? '#03201b' : '#aac4ff';
-    fctx.font = '12px monospace';
-    fctx.fillText(String(i + 1).padStart(2, '0'), padX + 9, y + 22);
+    fctx.font = '11px monospace';
+    fctx.fillText(String(i + 1).padStart(2, '0'), padX + 9, y + 18);
 
     fctx.fillStyle = isActive ? '#03201b' : '#ecf2ff';
-    const wrapped = wrapLines(fctx, codeLine, flowCanvas.width - (padX * 2) - gutterW - 12).slice(0, 2);
     wrapped.forEach((lineText, idx) => {
       fctx.fillText(lineText, padX + gutterW, y + 16 + (idx * 12));
     });
@@ -1029,18 +1035,18 @@ function drawCodeFlow(step) {
     if (isActive) {
       fctx.fillStyle = '#5eead4';
       fctx.beginPath();
-      fctx.moveTo(padX - 10, y + 15);
-      fctx.lineTo(padX - 2, y + 20);
-      fctx.lineTo(padX - 10, y + 25);
+      fctx.moveTo(padX - 10, y + 10);
+      fctx.lineTo(padX - 2, y + 16);
+      fctx.lineTo(padX - 10, y + 22);
       fctx.closePath();
       fctx.fill();
-      fctx.fillText('executing', flowCanvas.width - 86, y + 22);
+      fctx.fillText('executing', flowCanvas.width - 92, y + 18);
     }
 
     if (i < lines.length - 1) {
       const cx = padX + 10;
-      const y1 = y + lineHeight - 7;
-      const y2 = y + lineHeight + 2;
+      const y1 = y + blockH;
+      const y2 = y + blockH + rowGap;
       fctx.strokeStyle = i < active ? '#5eead4' : '#4f6aa8';
       fctx.lineWidth = 1.2;
       fctx.beginPath();
@@ -1048,14 +1054,16 @@ function drawCodeFlow(step) {
       fctx.lineTo(cx, y2);
       fctx.stroke();
     }
+
+    y += blockH + rowGap;
   });
 }
 
 async function animateToStep(fromStep, toStep) {
   const start = fromStep?.arr ?? state.values;
   const end = toStep.arr;
-  const frames = 44;
-  const frameDelayMs = 34;
+  const frames = Math.max(18, Math.round(44 / state.speed));
+  const frameDelayMs = Math.max(12, Math.round(34 / state.speed));
 
   for (let f = 1; f <= frames; f++) {
     const t = easeInOutCubic(f / frames);
@@ -1204,7 +1212,7 @@ function startAutoPlay() {
       return;
     }
     void nextStep();
-  }, 1850);
+  }, Math.max(500, Math.round(1850 / state.speed)));
   updateButtons();
 }
 
@@ -1231,6 +1239,11 @@ pauseBtn.addEventListener('click', () => {
   statusEl.textContent = 'Auto Play paused.';
 });
 document.getElementById('resetBtn').addEventListener('click', resetAll);
+speedRange.addEventListener('input', () => {
+  state.speed = Number(speedRange.value);
+  speedLabel.textContent = `Speed: ${state.speed.toFixed(1)}x`;
+});
+
 
 algoSelect.addEventListener('change', () => {
   state.algo = algoSelect.value;
@@ -1243,6 +1256,7 @@ window.addEventListener('resize', () => {
   renderPanels();
 });
 
+speedLabel.textContent = `Speed: ${state.speed.toFixed(1)}x`;
 refreshSetupFields();
 resize();
 renderPanels();
