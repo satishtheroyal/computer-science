@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sorting Visual Simulator</title>
+    <title>Sorting + Searching Visual Simulator</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <header>
-      <h1>Sorting Visual Simulator (Step-by-Step)</h1>
+      <h1>Sorting + Searching Visual Simulator (Step-by-Step)</h1>
       <p>Choose algorithm, load values, and press Next Step to follow the full flow in one screen.</p>
     </header>
 
@@ -22,11 +22,17 @@
               <option value="bubble">Bubble Sort</option>
               <option value="selection">Selection Sort</option>
               <option value="insertion">Insertion Sort</option>
+              <option value="linearSearch">Linear Search</option>
+              <option value="binarySearch">Binary Search</option>
             </select>
           </label>
           <label class="grow">
             Input values (comma separated)
             <input id="valuesInput" type="text" placeholder="e.g. 9, 4, 7, 1, 3" />
+          </label>
+          <label>
+            Target (for searching)
+            <input id="targetInput" type="number" placeholder="e.g. 7" />
           </label>
           <button id="loadBtn">Load</button>
           <button id="nextBtn">Next Step</button>

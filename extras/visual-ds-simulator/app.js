@@ -1,38 +1,25 @@
 const docs = {
-  bubble: { lines: [
-    'for i = 0..n-2',
-    'for j = 0..n-i-2',
-    'if a[j] > a[j+1] ?',
-    'swap(a[j], a[j+1])',
-    'next j / next i',
-    'end',
-  ]},
-  selection: { lines: [
-    'for i = 0..n-1',
-    'min = i',
-    'for j = i+1..n-1',
-    'if a[j] < a[min] ? min=j',
-    'swap(a[i], a[min])',
-    'end',
-  ]},
-  insertion: { lines: [
-    'for i = 1..n-1',
-    'key = a[i], j=i-1',
-    'while j>=0 and a[j] > key',
-    'a[j+1]=a[j], j--',
-    'a[j+1]=key',
-    'end',
-  ]},
+  bubble: { lines: ['for i = 0..n-2', 'for j = 0..n-i-2', 'if a[j] > a[j+1] ?', 'swap(a[j], a[j+1])', 'next j / next i', 'end'] },
+  selection: { lines: ['for i = 0..n-1', 'min = i', 'for j = i+1..n-1', 'if a[j] < a[min] ? min=j', 'swap(a[i], a[min])', 'end'] },
+  insertion: { lines: ['for i = 1..n-1', 'key = a[i], j=i-1', 'while j>=0 and a[j] > key', 'a[j+1]=a[j], j--', 'a[j+1]=key', 'end'] },
+  linearSearch: { lines: ['for i = 0..n-1', 'if a[i] == target ?', 'return index i', 'continue scan', 'not found', 'end'] },
+  binarySearch: { lines: ['sort array (if needed)', 'low=0, high=n-1', 'mid=(low+high)//2', 'if a[mid] == target ?', 'adjust low/high by compare', 'end'] },
+};
+
+const algoMeta = {
+  bubble: { type: 'sort' },
+  selection: { type: 'sort' },
+  insertion: { type: 'sort' },
+  linearSearch: { type: 'search' },
+  binarySearch: { type: 'search' },
 };
 
 const state = {
   algo: 'bubble',
   values: [],
+  target: null,
   steps: [],
   stepIndex: -1,
-  displayArr: [],
-  activeLine: -1,
-  activePair: [-1, -1],
   isAnimating: false,
 };
 
@@ -46,6 +33,7 @@ const dryEl = document.getElementById('dryRunBlock');
 const stepEl = document.getElementById('stepBlock');
 const algoSelect = document.getElementById('algorithmSelect');
 const valuesInput = document.getElementById('valuesInput');
+const targetInput = document.getElementById('targetInput');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
@@ -65,7 +53,7 @@ function makeStep(arr, a, b, desc, line, explain) {
   return { arr: [...arr], a, b, desc, line, explain };
 }
 
-function generateSteps(algo, input) {
+function generateSortSteps(algo, input) {
   const a = [...input];
   const out = [makeStep(a, -1, -1, 'Initial state', 0, 'We start with the unsorted array in memory.')];
 
@@ -117,6 +105,59 @@ function generateSteps(algo, input) {
   return out;
 }
 
+function generateSearchSteps(algo, input, target) {
+  const out = [];
+  if (algo === 'linearSearch') {
+    out.push(makeStep(input, -1, -1, `Start linear search for ${target}`, 0, 'Scan each index from left to right.'));
+    for (let i = 0; i < input.length; i++) {
+      out.push(makeStep(input, i, -1, `Compare a[${i}] with target`, 1, `Check whether ${input[i]} equals ${target}.`));
+      if (input[i] === target) {
+        out.push(makeStep(input, i, -1, `Found target at index ${i}`, 2, 'Search stops immediately at first match.'));
+        out.push(makeStep(input, i, -1, 'End', 5, 'Target found.'));
+        return out;
+      }
+      out.push(makeStep(input, i, -1, 'Continue scanning', 3, 'Current value is not target, move to next index.'));
+    }
+    out.push(makeStep(input, -1, -1, 'Target not found', 4, 'All indices checked and no match found.'));
+    out.push(makeStep(input, -1, -1, 'End', 5, 'Search completed with not-found result.'));
+    return out;
+  }
+
+  if (algo === 'binarySearch') {
+    const arr = [...input].sort((a, b) => a - b);
+    out.push(makeStep(arr, -1, -1, 'Sort input for binary search', 0, 'Binary search requires sorted order.'));
+    let low = 0;
+    let high = arr.length - 1;
+    out.push(makeStep(arr, low, high, `Initialize low=${low}, high=${high}`, 1, 'Search interval starts as full array.'));
+
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      out.push(makeStep(arr, mid, -1, `Check mid=${mid}, a[mid]=${arr[mid]}`, 2, 'Inspect middle element of current interval.'));
+      if (arr[mid] === target) {
+        out.push(makeStep(arr, mid, -1, `Found target at index ${mid}`, 3, 'Target equals middle value, search done.'));
+        out.push(makeStep(arr, mid, -1, 'End', 5, 'Target found.'));
+        return out;
+      }
+      if (arr[mid] < target) {
+        low = mid + 1;
+        out.push(makeStep(arr, low, high, `Target bigger -> low=${low}`, 4, 'Discard left half including mid.'));
+      } else {
+        high = mid - 1;
+        out.push(makeStep(arr, low, high, `Target smaller -> high=${high}`, 4, 'Discard right half including mid.'));
+      }
+    }
+    out.push(makeStep(arr, -1, -1, 'Target not found', 5, 'Interval became empty, so target is absent.'));
+    return out;
+  }
+  return out;
+}
+
+function generateSteps(algo, input, target) {
+  return algoMeta[algo].type === 'sort'
+    ? generateSortSteps(algo, input)
+    : generateSearchSteps(algo, input, target);
+}
+
 function drawBar3D(x, y, w, h, color, value, idx) {
   const d = 9;
   ctx.fillStyle = color;
@@ -140,7 +181,7 @@ function draw3DMemory(arr, a = -1, b = -1) {
   const total = arr.length * width + Math.max(arr.length - 1, 0) * gap;
   let x = (canvas.width - total) / 2;
   arr.forEach((v, i) => {
-    const h = 30 + (v / max) * (canvas.height * 0.56);
+    const h = 30 + (Math.abs(v) / max) * (canvas.height * 0.56);
     const y = baseY - h;
     const active = i === a || i === b;
     drawBar3D(x, y, width, h, active ? '#5eead4' : '#4f8cff', v, i);
@@ -157,12 +198,7 @@ function wrapLines(c, text, maxWidth) {
   let cur = '';
   for (const w of words) {
     const test = cur ? `${cur} ${w}` : w;
-    if (c.measureText(test).width > maxWidth && cur) {
-      lines.push(cur);
-      cur = w;
-    } else {
-      cur = test;
-    }
+    if (c.measureText(test).width > maxWidth && cur) { lines.push(cur); cur = w; } else { cur = test; }
   }
   if (cur) lines.push(cur);
   return lines;
@@ -176,15 +212,9 @@ function classifyShape(line, idx, total) {
 }
 
 function drawNodeShape(shape, x, y, w, h, color) {
-  fctx.fillStyle = color;
-  fctx.strokeStyle = '#dbe6ff';
-  fctx.lineWidth = 1.4;
-  if (shape === 'terminator') {
-    fctx.beginPath(); fctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2); fctx.fill(); fctx.stroke(); return;
-  }
-  if (shape === 'decision') {
-    fctx.beginPath(); fctx.moveTo(x + w / 2, y); fctx.lineTo(x + w, y + h / 2); fctx.lineTo(x + w / 2, y + h); fctx.lineTo(x, y + h / 2); fctx.closePath(); fctx.fill(); fctx.stroke(); return;
-  }
+  fctx.fillStyle = color; fctx.strokeStyle = '#dbe6ff'; fctx.lineWidth = 1.4;
+  if (shape === 'terminator') { fctx.beginPath(); fctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2); fctx.fill(); fctx.stroke(); return; }
+  if (shape === 'decision') { fctx.beginPath(); fctx.moveTo(x + w / 2, y); fctx.lineTo(x + w, y + h / 2); fctx.lineTo(x + w / 2, y + h); fctx.lineTo(x, y + h / 2); fctx.closePath(); fctx.fill(); fctx.stroke(); return; }
   if (shape === 'loop') {
     const r = 10;
     fctx.beginPath();
@@ -238,24 +268,9 @@ function drawFlow(step) {
       const y2 = y + nodeH + gap - 2;
       fctx.strokeStyle = i < active ? '#5eead4' : '#6781c1';
       fctx.lineWidth = 2;
-      fctx.beginPath();
-      fctx.moveTo(cx, y1);
-      fctx.lineTo(cx, y2);
-      fctx.stroke();
-
-      fctx.beginPath();
-      fctx.moveTo(cx, y2 + 4);
-      fctx.lineTo(cx - 4, y2 - 2);
-      fctx.lineTo(cx + 4, y2 - 2);
-      fctx.closePath();
-      fctx.fillStyle = fctx.strokeStyle;
-      fctx.fill();
-
-      if (shape === 'decision') {
-        fctx.fillStyle = '#bcd4ff';
-        fctx.font = '10px sans-serif';
-        fctx.fillText('Yes/No', cx + 36, y + nodeH / 2 + 3);
-      }
+      fctx.beginPath(); fctx.moveTo(cx, y1); fctx.lineTo(cx, y2); fctx.stroke();
+      fctx.beginPath(); fctx.moveTo(cx, y2 + 4); fctx.lineTo(cx - 4, y2 - 2); fctx.lineTo(cx + 4, y2 - 2); fctx.closePath(); fctx.fillStyle = fctx.strokeStyle; fctx.fill();
+      if (shape === 'decision') { fctx.fillStyle = '#bcd4ff'; fctx.font = '10px sans-serif'; fctx.fillText('Yes/No', cx + 36, y + nodeH / 2 + 3); }
     }
 
     yCursor += nodeH + gap;
@@ -296,10 +311,17 @@ function renderPanels() {
 function loadSimulation() {
   state.algo = algoSelect.value;
   state.values = parseValues(valuesInput.value);
+  state.target = targetInput.value === '' ? null : Number(targetInput.value);
+
   if (!state.values.length) { statusEl.textContent = 'Please enter valid numbers (comma separated).'; return; }
-  state.steps = generateSteps(state.algo, state.values);
+  if (algoMeta[state.algo].type === 'search' && (state.target === null || Number.isNaN(state.target))) {
+    statusEl.textContent = 'Please enter a valid target for searching.';
+    return;
+  }
+
+  state.steps = generateSteps(state.algo, state.values, state.target);
   state.stepIndex = 0;
-  statusEl.textContent = `Loaded ${state.algo} with ${state.values.length} values.`;
+  statusEl.textContent = `Loaded ${state.algo} with ${state.values.length} values${algoMeta[state.algo].type === 'search' ? `, target=${state.target}` : ''}.`;
   renderPanels();
 }
 
@@ -316,14 +338,16 @@ async function nextStep() {
     renderPanels();
     state.isAnimating = false;
   }
-  statusEl.textContent = state.stepIndex >= state.steps.length - 1 ? 'Done. Sorted complete.' : `Step ${state.stepIndex}/${state.steps.length - 1}`;
+  statusEl.textContent = state.stepIndex >= state.steps.length - 1 ? 'Done.' : `Step ${state.stepIndex}/${state.steps.length - 1}`;
 }
 
 function resetAll() {
   state.values = [];
+  state.target = null;
   state.steps = [];
   state.stepIndex = -1;
   valuesInput.value = '';
+  targetInput.value = '';
   statusEl.textContent = 'Reset complete. Enter values and load again.';
   renderPanels();
 }
@@ -331,8 +355,13 @@ function resetAll() {
 document.getElementById('loadBtn').addEventListener('click', loadSimulation);
 document.getElementById('nextBtn').addEventListener('click', () => { void nextStep(); });
 document.getElementById('resetBtn').addEventListener('click', resetAll);
-algoSelect.addEventListener('change', () => { state.algo = algoSelect.value; renderPanels(); });
+algoSelect.addEventListener('change', () => {
+  state.algo = algoSelect.value;
+  targetInput.disabled = algoMeta[state.algo].type !== 'search';
+  renderPanels();
+});
 window.addEventListener('resize', () => { resize(); renderPanels(); });
 
+targetInput.disabled = true;
 resize();
 renderPanels();
