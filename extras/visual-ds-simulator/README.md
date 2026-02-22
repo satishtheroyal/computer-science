@@ -6,8 +6,11 @@ Re-started as a **feature-by-feature** algorithm visualizer with slower, explain
 - User selects an algorithm:
   - Sorting: Bubble / Selection / Insertion / Merge / Quick / Heap / Shell
   - Searching: Linear Search / Binary Search / Jump Search
-  - Data structures / traversal / hashing:
-    - Linked List Traversal
+  - Data structures / operations:
+    - Linked List (singly/doubly/circular): insert, delete, search
+    - Stacks: array-based + linked-list push/pop/peek
+    - Queues: linear + circular enqueue/dequeue
+    - Deque: push/pop front/back
     - Tree BFS Traversal
     - Graph BFS Traversal
     - Hashing with Linear Probing (insert + search)

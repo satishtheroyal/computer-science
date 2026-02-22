@@ -9,10 +9,31 @@ const docs = {
   linearSearch: { lines: ['for i = 0..n-1', 'if a[i] == target ?', 'return index i', 'continue scan', 'not found', 'end'] },
   binarySearch: { lines: ['sort array (if needed)', 'low=0, high=n-1', 'mid=(low+high)//2', 'if a[mid] == target ?', 'adjust low/high by compare', 'end'] },
   jumpSearch: { lines: ['sort array (if needed)', 'jump by block size √n', 'find block where target may exist', 'linear scan inside block', 'return index or not found', 'end'] },
-  linkedListTraversal: { lines: ['head = first node', 'while node != null', 'visit node.value', 'node = node.next', 'repeat', 'end'] },
+  linkedListSinglyInsert: { lines: ['head -> first node', 'create new node(target)', 'go to tail node', 'tail.next = new node', 'update links', 'end'] },
+  linkedListSinglyDelete: { lines: ['head -> first node', 'find node == target', 'prev.next = curr.next', 'disconnect curr node', 'update links', 'end'] },
+  linkedListSinglySearch: { lines: ['head -> first node', 'while curr != null', 'if curr.value == target', 'return found position', 'curr = curr.next', 'end'] },
+  linkedListDoublyInsert: { lines: ['head / tail pointers', 'create new node(target)', 'tail.next = node', 'node.prev = tail', 'tail = node', 'end'] },
+  linkedListDoublyDelete: { lines: ['find node == target', 'fix prev.next link', 'fix next.prev link', 'update head/tail if needed', 'remove node', 'end'] },
+  linkedListDoublySearch: { lines: ['curr = head', 'while curr != null', 'if curr.value == target', 'return found position', 'curr = curr.next', 'end'] },
+  linkedListCircularInsert: { lines: ['create node(target)', 'if empty set node->node', 'else find tail', 'tail.next = node', 'node.next = head', 'end'] },
+  linkedListCircularDelete: { lines: ['find target with do-while', 'if deleting head, move head', 'bypass target node', 'maintain tail.next=head', 'remove node', 'end'] },
+  linkedListCircularSearch: { lines: ['curr = head', 'do until back to head', 'if curr.value == target', 'return found position', 'curr = curr.next', 'end'] },
   treeBFS: { lines: ['build tree nodes', 'enqueue root', 'while queue not empty', 'dequeue + visit node', 'enqueue children', 'end'] },
   graphBFS: { lines: ['build adjacency list', 'enqueue start + mark visited', 'while queue not empty', 'dequeue vertex', 'enqueue unvisited neighbors', 'end'] },
   hashingLinearProbe: { lines: ['init table with empty slots', 'hash(key) = key % size', 'if collision, probe next slot', 'insert / search in probed slot', 'repeat until found/empty', 'end'] },
+  stackArrayPush: { lines: ['top initialized', 'if full -> overflow', 'top = top + 1', 'stack[top] = target', 'report pushed', 'end'] },
+  stackArrayPop: { lines: ['if empty -> underflow', 'value = stack[top]', 'top = top - 1', 'return value', 'update stack', 'end'] },
+  stackArrayPeek: { lines: ['if empty -> no top', 'read stack[top]', 'return top value', 'no mutation', 'report state', 'end'] },
+  stackLinkedPush: { lines: ['create node(target)', 'node.next = top', 'top = node', 'update links', 'report pushed', 'end'] },
+  stackLinkedPop: { lines: ['if top == null', 'value = top.value', 'top = top.next', 'disconnect old top', 'return value', 'end'] },
+  queueLinearEnqueue: { lines: ['if full -> overflow', 'if empty init front', 'rear = rear + 1', 'queue[rear] = target', 'report enqueue', 'end'] },
+  queueLinearDequeue: { lines: ['if empty -> underflow', 'value = queue[front]', 'front = front + 1', 'if front>rear reset', 'return value', 'end'] },
+  queueCircularEnqueue: { lines: ['next = (rear+1)%size', 'if next==front full', 'rear = next', 'queue[rear] = target', 'keep circular links', 'end'] },
+  queueCircularDequeue: { lines: ['if empty -> underflow', 'value = queue[front]', 'front = (front+1)%size', 'if became empty reset', 'return value', 'end'] },
+  dequePushFront: { lines: ['if full -> overflow', 'front = (front-1+size)%size', 'deque[front] = target', 'if empty sync rear', 'report push-front', 'end'] },
+  dequePushBack: { lines: ['if full -> overflow', 'rear = (rear+1)%size', 'deque[rear] = target', 'if empty sync front', 'report push-back', 'end'] },
+  dequePopFront: { lines: ['if empty -> underflow', 'value = deque[front]', 'front = (front+1)%size', 'if became empty reset', 'return value', 'end'] },
+  dequePopBack: { lines: ['if empty -> underflow', 'value = deque[rear]', 'rear = (rear-1+size)%size', 'if became empty reset', 'return value', 'end'] },
 };
 
 const algoMeta = {
@@ -26,10 +47,31 @@ const algoMeta = {
   linearSearch: { type: 'search', insight: 'Linear search checks one index at a time.', targetRequired: true },
   binarySearch: { type: 'search', insight: 'Binary search halves the search interval each comparison.', targetRequired: true },
   jumpSearch: { type: 'search', insight: 'Jump search skips blocks first, then scans inside one block.', targetRequired: true },
-  linkedListTraversal: { type: 'ds', insight: 'Linked list traversal follows next pointers node by node.', targetRequired: false },
+  linkedListSinglyInsert: { type: 'ds', insight: 'Singly linked-list insertion updates only next pointer.', targetRequired: true },
+  linkedListSinglyDelete: { type: 'ds', insight: 'Singly linked-list delete reconnects previous node to next node.', targetRequired: true },
+  linkedListSinglySearch: { type: 'ds', insight: 'Singly linked-list search walks one node at a time.', targetRequired: true },
+  linkedListDoublyInsert: { type: 'ds', insight: 'Doubly linked-list insert updates next and prev pointers.', targetRequired: true },
+  linkedListDoublyDelete: { type: 'ds', insight: 'Doubly linked-list delete fixes links on both sides.', targetRequired: true },
+  linkedListDoublySearch: { type: 'ds', insight: 'Doubly linked-list search traverses from head using next pointers.', targetRequired: true },
+  linkedListCircularInsert: { type: 'ds', insight: 'Circular linked-list insert preserves tail.next = head.', targetRequired: true },
+  linkedListCircularDelete: { type: 'ds', insight: 'Circular linked-list delete must keep the ring connected.', targetRequired: true },
+  linkedListCircularSearch: { type: 'ds', insight: 'Circular linked-list search stops when traversal returns to head.', targetRequired: true },
   treeBFS: { type: 'ds', insight: 'Tree BFS visits nodes level-by-level using a queue.', targetRequired: false },
   graphBFS: { type: 'ds', insight: 'Graph BFS explores breadth-first from a start vertex.', targetRequired: false },
-  hashingLinearProbe: { type: 'ds', insight: 'Linear probing resolves collisions by checking the next slots.', targetRequired: true },
+  hashingLinearProbe: { type: 'ds', insight: 'Linear probing resolves collisions by checking next slots.', targetRequired: true },
+  stackArrayPush: { type: 'ds', insight: 'Array stack push writes at incremented top index.', targetRequired: true },
+  stackArrayPop: { type: 'ds', insight: 'Array stack pop removes and returns the current top.', targetRequired: false },
+  stackArrayPeek: { type: 'ds', insight: 'Array stack peek reads top without modifying stack.', targetRequired: false },
+  stackLinkedPush: { type: 'ds', insight: 'Linked stack push prepends node at top pointer.', targetRequired: true },
+  stackLinkedPop: { type: 'ds', insight: 'Linked stack pop advances top to top.next.', targetRequired: false },
+  queueLinearEnqueue: { type: 'ds', insight: 'Linear queue enqueue appends at rear.', targetRequired: true },
+  queueLinearDequeue: { type: 'ds', insight: 'Linear queue dequeue removes from front.', targetRequired: false },
+  queueCircularEnqueue: { type: 'ds', insight: 'Circular queue enqueue wraps index using modulo.', targetRequired: true },
+  queueCircularDequeue: { type: 'ds', insight: 'Circular queue dequeue advances front circularly.', targetRequired: false },
+  dequePushFront: { type: 'ds', insight: 'Deque push-front inserts at front end.', targetRequired: true },
+  dequePushBack: { type: 'ds', insight: 'Deque push-back inserts at rear end.', targetRequired: true },
+  dequePopFront: { type: 'ds', insight: 'Deque pop-front removes from front end.', targetRequired: false },
+  dequePopBack: { type: 'ds', insight: 'Deque pop-back removes from rear end.', targetRequired: false },
 };
 
 const state = {
@@ -344,21 +386,59 @@ function generateSearchSteps(algo, input, target) {
 
 function generateDsSteps(algo, input, target) {
   const out = [];
+  const arr = [...input];
 
-  if (algo === 'linkedListTraversal') {
-    pushStep(out, input, -1, -1, 'Create linked list from input sequence', 0, 'Each array value is treated as one linked-list node in order.');
-    for (let i = 0; i < input.length; i++) {
-      pushStep(out, input, i, -1, `Visit node ${i}`, 2, `Read node value ${input[i]} and move pointer to next node.`);
-      if (i < input.length - 1) {
-        pushStep(out, input, i, i + 1, 'Move to next node', 3, 'Advance pointer through next link.');
+  const mapDelete = (a, targetVal) => {
+    const idx = a.indexOf(targetVal);
+    if (idx >= 0) a.splice(idx, 1);
+    return idx;
+  };
+
+  if (algo.includes('linkedList')) {
+    const listType = algo.includes('Doubly') ? 'doubly' : (algo.includes('Circular') ? 'circular' : 'singly');
+    pushStep(out, arr, -1, -1, `Build ${listType} linked list`, 0, `Interpret input array as ${listType} linked-list nodes.`);
+
+    if (algo.endsWith('Insert')) {
+      pushStep(out, arr, -1, -1, `Create node(${target})`, 1, 'Create new node with target value.');
+      if (listType === 'singly') {
+        pushStep(out, arr, arr.length - 1, -1, 'Traverse to tail', 2, 'Move to last node via next pointers.');
       }
+      arr.push(target);
+      pushStep(out, arr, arr.length - 1, -1, 'Link new node and update tail', 4, 'Attach new node at end and refresh last pointer(s).');
+      pushStep(out, arr, -1, -1, 'Insert operation complete', 5, 'Linked-list insertion finished.');
+      return out;
     }
-    pushStep(out, input, -1, -1, 'Traversal complete', 5, 'Pointer reached null, traversal ended.');
-    return out;
+
+    if (algo.endsWith('Delete')) {
+      for (let i = 0; i < arr.length; i++) {
+        pushStep(out, arr, i, -1, `Scan node ${i}`, 1, `Check whether node value ${arr[i]} equals target ${target}.`);
+      }
+      const idx = mapDelete(arr, target);
+      if (idx >= 0) {
+        pushStep(out, arr, idx, -1, 'Reconnect links around deleted node', 2, 'Bypass target node and preserve list connectivity.');
+        pushStep(out, arr, -1, -1, 'Delete operation complete', 5, 'Target node removed from linked list.');
+      } else {
+        pushStep(out, arr, -1, -1, 'Target not found', 5, 'No node with target value exists.');
+      }
+      return out;
+    }
+
+    if (algo.endsWith('Search')) {
+      for (let i = 0; i < arr.length; i++) {
+        pushStep(out, arr, i, -1, `Visit node ${i}`, 1, `Compare node value ${arr[i]} with target ${target}.`);
+        if (arr[i] === target) {
+          pushStep(out, arr, i, -1, `Found target at node ${i}`, 3, 'Search successful at this node.');
+          pushStep(out, arr, -1, -1, 'Search operation complete', 5, 'Linked-list search finished.');
+          return out;
+        }
+        pushStep(out, arr, i, -1, 'Move to next node', 4, 'Advance traversal pointer to next node.');
+      }
+      pushStep(out, arr, -1, -1, 'Target not found', 5, 'Reached end (or head again for circular) without match.');
+      return out;
+    }
   }
 
   if (algo === 'treeBFS') {
-    const arr = [...input];
     pushStep(out, arr, 0, -1, 'Build tree nodes from level-order input', 0, 'Input is interpreted as level-order binary tree values.');
     if (!arr.length) return out;
     const q = [0];
@@ -382,35 +462,34 @@ function generateDsSteps(algo, input, target) {
   }
 
   if (algo === 'graphBFS') {
-    const nodes = [...input];
-    const n = nodes.length;
+    const n = arr.length;
     const adj = Array.from({ length: n }, () => []);
     for (let i = 0; i < n; i++) {
       if (i + 1 < n) adj[i].push(i + 1);
       if (i + 2 < n) adj[i].push(i + 2);
     }
-    pushStep(out, nodes, -1, -1, 'Build sample adjacency list', 0, 'Connect each vertex to next one and next-two for visual BFS demo graph.');
+    pushStep(out, arr, -1, -1, 'Build sample adjacency list', 0, 'Connect each vertex to next one and next-two for visual BFS demo graph.');
     if (!n) return out;
     const visited = new Set([0]);
     const q = [0];
-    pushStep(out, nodes, 0, -1, 'Enqueue start vertex 0', 1, 'Start BFS from first vertex.');
+    pushStep(out, arr, 0, -1, 'Enqueue start vertex 0', 1, 'Start BFS from first vertex.');
     while (q.length) {
       const v = q.shift();
-      pushStep(out, nodes, v, -1, `Dequeue vertex ${v}`, 3, `Visit vertex value ${nodes[v]}.`);
+      pushStep(out, arr, v, -1, `Dequeue vertex ${v}`, 3, `Visit vertex value ${arr[v]}.`);
       for (const nei of adj[v]) {
         if (!visited.has(nei)) {
           visited.add(nei);
           q.push(nei);
-          pushStep(out, nodes, v, nei, `Enqueue unvisited neighbor ${nei}`, 4, 'Mark neighbor visited and queue it.');
+          pushStep(out, arr, v, nei, `Enqueue unvisited neighbor ${nei}`, 4, 'Mark neighbor visited and queue it.');
         }
       }
     }
-    pushStep(out, nodes, -1, -1, 'Graph BFS complete', 5, 'Queue exhausted; reachable vertices explored.');
+    pushStep(out, arr, -1, -1, 'Graph BFS complete', 5, 'Queue exhausted; reachable vertices explored.');
     return out;
   }
 
   if (algo === 'hashingLinearProbe') {
-    const keys = [...input];
+    const keys = [...arr];
     const size = Math.max(7, (keys.length * 2) + 1);
     const table = Array(size).fill(0);
     pushStep(out, table, -1, -1, `Initialize hash table size=${size}`, 0, 'Use open addressing table with linear probing.');
@@ -426,24 +505,145 @@ function generateDsSteps(algo, input, target) {
       pushStep(out, table, idx, -1, `Insert key ${key} at slot ${idx}`, 3, 'Found empty slot; insert key here.');
     }
 
-    if (target !== null && !Number.isNaN(target)) {
-      let idx = Math.abs(target) % size;
-      pushStep(out, table, idx, -1, `Search target ${target} from slot ${idx}`, 3, 'Begin linear probing search from hashed slot.');
-      for (let c = 0; c < size; c++) {
-        if (table[idx] === target) {
-          pushStep(out, table, idx, -1, `Found target at slot ${idx}`, 4, 'Target key found during probing.');
-          pushStep(out, table, -1, -1, 'Hash operation complete', 5, 'Insertion + lookup demo completed.');
-          return out;
-        }
-        if (table[idx] === 0) break;
-        idx = (idx + 1) % size;
-        pushStep(out, table, idx, -1, `Probe next slot ${idx}`, 4, 'Continue probing until key found or empty slot encountered.');
+    let idx = Math.abs(target) % size;
+    pushStep(out, table, idx, -1, `Search target ${target} from slot ${idx}`, 3, 'Begin linear probing search from hashed slot.');
+    for (let c = 0; c < size; c++) {
+      if (table[idx] === target) {
+        pushStep(out, table, idx, -1, `Found target at slot ${idx}`, 4, 'Target key found during probing.');
+        pushStep(out, table, -1, -1, 'Hash operation complete', 5, 'Insertion + lookup demo completed.');
+        return out;
       }
-      pushStep(out, table, -1, -1, 'Target not found in table', 5, 'Reached empty slot or full probe cycle without match.');
+      if (table[idx] === 0) break;
+      idx = (idx + 1) % size;
+      pushStep(out, table, idx, -1, `Probe next slot ${idx}`, 4, 'Continue probing until key found or empty slot encountered.');
+    }
+    pushStep(out, table, -1, -1, 'Target not found in table', 5, 'Reached empty slot or full probe cycle without match.');
+    return out;
+  }
+
+  if (algo.startsWith('stackArray')) {
+    const st = [...arr];
+    pushStep(out, st, st.length - 1, -1, 'Initialize stack from input', 0, 'Treat rightmost index as stack top.');
+    if (algo === 'stackArrayPush') {
+      st.push(target);
+      pushStep(out, st, st.length - 1, -1, `Push ${target}`, 3, 'Increment top and place value at top slot.');
+      pushStep(out, st, -1, -1, 'Push complete', 5, 'Stack push operation finished.');
       return out;
     }
+    if (!st.length) {
+      pushStep(out, st, -1, -1, 'Underflow', 1, 'Cannot pop/peek from an empty stack.');
+      return out;
+    }
+    if (algo === 'stackArrayPop') {
+      const val = st.pop();
+      pushStep(out, st, st.length - 1, -1, `Pop value ${val}`, 2, 'Remove previous top and decrement top index.');
+      pushStep(out, st, -1, -1, 'Pop complete', 5, 'Stack pop operation finished.');
+      return out;
+    }
+    pushStep(out, st, st.length - 1, -1, `Peek value ${st[st.length - 1]}`, 2, 'Read top element without modifying stack.');
+    pushStep(out, st, -1, -1, 'Peek complete', 5, 'Stack peek operation finished.');
+    return out;
+  }
 
-    pushStep(out, table, -1, -1, 'Hash insertion complete', 5, 'All keys inserted using linear probing.');
+  if (algo.startsWith('stackLinked')) {
+    const st = [...arr];
+    pushStep(out, st, 0, -1, 'Initialize linked stack', 0, 'Treat head as top pointer.');
+    if (algo === 'stackLinkedPush') {
+      st.unshift(target);
+      pushStep(out, st, 0, -1, `Push ${target}`, 2, 'Create node and move top to new head.');
+      pushStep(out, st, -1, -1, 'Push complete', 5, 'Linked-stack push completed.');
+      return out;
+    }
+    if (!st.length) {
+      pushStep(out, st, -1, -1, 'Underflow', 1, 'Cannot pop from an empty linked stack.');
+      return out;
+    }
+    const val = st.shift();
+    pushStep(out, st, 0, -1, `Pop value ${val}`, 3, 'Advance top to top.next and remove old head node.');
+    pushStep(out, st, -1, -1, 'Pop complete', 5, 'Linked-stack pop completed.');
+    return out;
+  }
+
+  if (algo.startsWith('queueLinear')) {
+    const q = [...arr];
+    pushStep(out, q, 0, q.length - 1, 'Initialize linear queue', 0, 'Front at index 0 and rear at last index.');
+    if (algo === 'queueLinearEnqueue') {
+      q.push(target);
+      pushStep(out, q, q.length - 1, -1, `Enqueue ${target}`, 3, 'Append value at queue rear.');
+      pushStep(out, q, -1, -1, 'Enqueue complete', 5, 'Linear queue enqueue completed.');
+      return out;
+    }
+    if (!q.length) {
+      pushStep(out, q, -1, -1, 'Underflow', 1, 'Cannot dequeue from empty queue.');
+      return out;
+    }
+    const val = q.shift();
+    pushStep(out, q, 0, -1, `Dequeue value ${val}`, 2, 'Remove value from queue front.');
+    pushStep(out, q, -1, -1, 'Dequeue complete', 5, 'Linear queue dequeue completed.');
+    return out;
+  }
+
+  if (algo.startsWith('queueCircular')) {
+    const size = Math.max(7, arr.length + 3);
+    const buf = Array(size).fill(0);
+    let front = 0;
+    let rear = -1;
+    for (const v of arr.slice(0, size - 1)) {
+      rear = (rear + 1) % size;
+      buf[rear] = v;
+    }
+    pushStep(out, buf, front, rear, `Initialize circular queue size=${size}`, 0, 'Load initial queue snapshot in circular buffer.');
+    if (algo === 'queueCircularEnqueue') {
+      const next = (rear + 1) % size;
+      if (next === front) {
+        pushStep(out, buf, front, rear, 'Overflow', 1, 'Next rear equals front so queue is full.');
+        return out;
+      }
+      rear = next;
+      buf[rear] = target;
+      pushStep(out, buf, front, rear, `Enqueue ${target}`, 3, 'Write value at wrapped rear index.');
+      pushStep(out, buf, front, rear, 'Enqueue complete', 5, 'Circular queue enqueue completed.');
+      return out;
+    }
+    if (rear === -1 || (buf[front] === 0 && front === ((rear + 1) % size))) {
+      pushStep(out, buf, front, rear, 'Underflow', 1, 'Queue is empty.');
+      return out;
+    }
+    const val = buf[front];
+    buf[front] = 0;
+    front = (front + 1) % size;
+    pushStep(out, buf, front, rear, `Dequeue value ${val}`, 2, 'Advance front index circularly after removal.');
+    pushStep(out, buf, front, rear, 'Dequeue complete', 5, 'Circular queue dequeue completed.');
+    return out;
+  }
+
+  if (algo.startsWith('deque')) {
+    const dq = [...arr];
+    pushStep(out, dq, 0, dq.length - 1, 'Initialize deque', 0, 'Double-ended queue supports both front and rear operations.');
+    if (algo === 'dequePushFront') {
+      dq.unshift(target);
+      pushStep(out, dq, 0, -1, `Push front ${target}`, 2, 'Insert value at front side.');
+      pushStep(out, dq, -1, -1, 'Operation complete', 5, 'Deque push-front completed.');
+      return out;
+    }
+    if (algo === 'dequePushBack') {
+      dq.push(target);
+      pushStep(out, dq, dq.length - 1, -1, `Push back ${target}`, 2, 'Insert value at rear side.');
+      pushStep(out, dq, -1, -1, 'Operation complete', 5, 'Deque push-back completed.');
+      return out;
+    }
+    if (!dq.length) {
+      pushStep(out, dq, -1, -1, 'Underflow', 1, 'Deque is empty.');
+      return out;
+    }
+    if (algo === 'dequePopFront') {
+      const val = dq.shift();
+      pushStep(out, dq, 0, -1, `Pop front ${val}`, 2, 'Remove and return front value.');
+    } else {
+      const val = dq.pop();
+      pushStep(out, dq, dq.length - 1, -1, `Pop back ${val}`, 2, 'Remove and return rear value.');
+    }
+    pushStep(out, dq, -1, -1, 'Operation complete', 5, 'Deque pop operation completed.');
     return out;
   }
 
