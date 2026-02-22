@@ -115,6 +115,16 @@ const dryEl = document.getElementById('dryRunBlock');
 const stepEl = document.getElementById('stepBlock');
 const algoSelect = document.getElementById('algorithmSelect');
 const valuesInput = document.getElementById('valuesInput');
+const countInput = document.getElementById('countInput');
+const randomBtn = document.getElementById('randomBtn');
+const valuesLabel = document.getElementById('valuesLabel');
+const countLabel = document.getElementById('countLabel');
+const targetLabel = document.getElementById('targetLabel');
+const positionLabel = document.getElementById('positionLabel');
+const updateLabel = document.getElementById('updateLabel');
+const opSelectLabel = document.getElementById('opSelectLabel');
+const opIndexLabel = document.getElementById('opIndexLabel');
+const opValueLabel = document.getElementById('opValueLabel');
 const targetInput = document.getElementById('targetInput');
 const positionSelect = document.getElementById('positionSelect');
 const updateValueInput = document.getElementById('updateValueInput');
@@ -141,6 +151,32 @@ function resize() {
 
 function parseValues(raw) {
   return raw.split(',').map((s) => s.trim()).filter(Boolean).map(Number).filter((n) => !Number.isNaN(n));
+}
+
+
+function clampCount(raw) {
+  const n = Number(raw);
+  if (Number.isNaN(n)) return 6;
+  return Math.max(0, Math.min(20, Math.round(n)));
+}
+
+function generateRandomValues(count) {
+  return Array.from({ length: count }, () => Math.floor(Math.random() * 100));
+}
+
+function syncValuesInput() {
+  valuesInput.value = state.values.join(', ');
+}
+
+function randomizeSetupValues() {
+  const count = clampCount(countInput.value);
+  countInput.value = String(count);
+  state.values = generateRandomValues(count);
+  syncValuesInput();
+  statusEl.textContent = count
+    ? `Generated ${count} random values for ${state.algo}.`
+    : 'Generated an empty input. Useful for empty-structure simulations.';
+  renderPanels();
 }
 
 function makeStep(arr, a, b, desc, line, explain) {
@@ -1328,9 +1364,45 @@ function algorithmAllowsEmptyInput(algo) {
 
 function refreshSetupFields() {
   const algo = state.algo;
-  targetInput.disabled = !needsTargetValue(algo);
-  updateValueInput.disabled = !needsUpdateValue(algo);
-  positionSelect.disabled = !isPositionAlgo(algo);
+  const meta = algoMeta[algo] || { type: 'sort' };
+  const isDs = meta.type === 'ds';
+  const isSearch = meta.type === 'search';
+  const showTarget = needsTargetValue(algo);
+  const showUpdate = needsUpdateValue(algo);
+  const showPosition = isPositionAlgo(algo);
+
+  const toggle = (el, show) => {
+    if (!el) return;
+    el.style.display = show ? '' : 'none';
+  };
+
+  targetInput.disabled = !showTarget;
+  updateValueInput.disabled = !showUpdate;
+  positionSelect.disabled = !showPosition;
+
+  toggle(valuesLabel, true);
+  toggle(countLabel, true);
+  toggle(randomBtn, true);
+  toggle(targetLabel, showTarget);
+  toggle(updateLabel, showUpdate);
+  toggle(positionLabel, showPosition);
+
+  const showOps = isDs;
+  toggle(opSelectLabel, showOps);
+  toggle(opIndexLabel, showOps);
+  toggle(opValueLabel, showOps);
+  toggle(runOpBtn, showOps);
+
+  if (!showTarget) targetInput.value = '';
+  if (!showUpdate) updateValueInput.value = '';
+  if (!showPosition) positionSelect.value = 'end';
+
+  const modeHint = isDs
+    ? 'DS mode: operation runner enabled.'
+    : isSearch
+      ? 'Search mode: configure target and step execution.'
+      : 'Sort mode: generate values and step execution.';
+  statusEl.textContent = modeHint;
 }
 
 function stopAutoPlay() {
@@ -1344,13 +1416,13 @@ function stopAutoPlay() {
 function loadSimulation() {
   stopAutoPlay();
   state.algo = algoSelect.value;
-  state.values = parseValues(valuesInput.value);
+  state.values = state.values.length ? [...state.values] : parseValues(valuesInput.value);
   state.target = targetInput.value === '' ? null : Number(targetInput.value);
   state.updateValue = updateValueInput.value === '' ? null : Number(updateValueInput.value);
   state.position = positionSelect.value;
 
   if (!state.values.length && !algorithmAllowsEmptyInput(state.algo)) {
-    statusEl.textContent = 'Please enter valid numbers (comma separated).';
+    statusEl.textContent = 'Generate random numbers first (or provide valid values).';
     return;
   }
   if (needsTargetValue(state.algo) && (state.target === null || Number.isNaN(state.target))) {
@@ -1422,11 +1494,13 @@ function resetAll() {
   targetInput.value = '';
   updateValueInput.value = '';
   positionSelect.value = 'end';
-  statusEl.textContent = 'Reset complete. Enter values and load again.';
+  statusEl.textContent = 'Reset complete. Generate random numbers and load again.';
   renderPanels();
 }
 
 document.getElementById('loadBtn').addEventListener('click', loadSimulation);
+randomBtn.addEventListener('click', randomizeSetupValues);
+countInput.addEventListener('change', () => { countInput.value = String(clampCount(countInput.value)); });
 nextBtn.addEventListener('click', () => { void nextStep(); });
 prevBtn.addEventListener('click', () => { void prevStep(); });
 playBtn.addEventListener('click', startAutoPlay);
@@ -1479,6 +1553,7 @@ algoSelect.addEventListener('change', () => {
   state.algo = algoSelect.value;
   refreshSetupFields();
   configureOperationMenu();
+  randomizeSetupValues();
   renderPanels();
 });
 
@@ -1490,5 +1565,6 @@ window.addEventListener('resize', () => {
 speedLabel.textContent = `Speed: ${state.speed.toFixed(1)}x`;
 refreshSetupFields();
 configureOperationMenu();
+randomizeSetupValues();
 resize();
 renderPanels();

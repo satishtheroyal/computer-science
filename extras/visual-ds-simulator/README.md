@@ -14,9 +14,9 @@ Re-started as a **feature-by-feature** algorithm visualizer with slower, explain
     - Tree BFS Traversal
     - Graph BFS Traversal
     - Hashing with Linear Probing (insert + search)
-- User enters input values (comma separated).
-- For target-based algorithms, user enters a target value.
-- Setup is dynamic per algorithm: target/value, update value, and position (beginning/middle/end) fields are enabled only when needed.
+- User generates input values with **Random Numbers** (and configurable **Count**) instead of manual list typing.
+- For target-based algorithms, user enters a target/value when that technique requires it.
+- Setup display is dynamic per selected technique: target/value, update value, position, and operation-runner controls are shown only when relevant.
 - Empty structures are handled explicitly (underflow/empty-list steps are shown for invalid delete/pop/dequeue/update operations).
 - User can run operations for every algorithm using:
   - **Load**

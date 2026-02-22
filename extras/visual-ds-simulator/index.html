@@ -64,15 +64,20 @@
               <option value="dequeUpdateFront">Deque Update Front</option>
               <option value="dequeUpdateBack">Deque Update Back</option></select>
           </label>
-          <label class="grow">
-            Input values (comma separated)
-            <input id="valuesInput" type="text" placeholder="e.g. 9, 4, 7, 1, 3" />
+          <label class="grow" id="valuesLabel">
+            Generated values
+            <input id="valuesInput" type="text" placeholder="Click Random Numbers" readonly />
           </label>
-          <label>
+          <label id="countLabel">
+            Count
+            <input id="countInput" type="number" min="0" max="20" value="6" />
+          </label>
+          <button id="randomBtn" class="ghost">Random Numbers</button>
+          <label id="targetLabel">
             Target / Value
             <input id="targetInput" type="number" placeholder="e.g. 7" />
           </label>
-          <label>
+          <label id="positionLabel">
             Position
             <select id="positionSelect">
               <option value="beginning">Beginning</option>
@@ -80,7 +85,7 @@
               <option value="end">End</option>
             </select>
           </label>
-          <label>
+          <label id="updateLabel">
             New Value (for update)
             <input id="updateValueInput" type="number" placeholder="e.g. 99" />
           </label>
@@ -95,7 +100,7 @@
             <input id="speedRange" type="range" min="0.4" max="2.2" step="0.1" value="1" />
           </label>
           <small id="speedLabel">Speed: 1.0x</small>
-          <label>
+          <label id="opSelectLabel">
             Array Operation
             <select id="opSelect">
               <option value="insert">Insert</option>
@@ -107,11 +112,11 @@
               <option value="reset">Reset</option>
             </select>
           </label>
-          <label>
+          <label id="opIndexLabel">
             Op Index
             <input id="opIndexInput" type="number" placeholder="index" />
           </label>
-          <label>
+          <label id="opValueLabel">
             Op Value
             <input id="opValueInput" type="number" placeholder="value" />
           </label>
