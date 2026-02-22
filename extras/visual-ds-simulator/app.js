@@ -33,6 +33,7 @@ const state = {
   displayArr: [],
   activeLine: -1,
   activePair: [-1, -1],
+  isAnimating: false,
 };
 
 const canvas = document.getElementById('vizCanvas');
@@ -47,6 +48,7 @@ const algoSelect = document.getElementById('algorithmSelect');
 const valuesInput = document.getElementById('valuesInput');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
 function resize() {
   canvas.width = scene.clientWidth;
@@ -200,18 +202,26 @@ function drawFlow(step) {
   const lines = docs[state.algo].lines;
   const active = step?.line ?? -1;
   fctx.clearRect(0, 0, flowCanvas.width, flowCanvas.height);
-  fctx.fillStyle = '#0c1430'; fctx.fillRect(0, 0, flowCanvas.width, flowCanvas.height);
+  fctx.fillStyle = '#0c1430';
+  fctx.fillRect(0, 0, flowCanvas.width, flowCanvas.height);
 
   const n = lines.length;
   const nodeW = Math.min(560, flowCanvas.width - 70);
-  const nodeH = Math.max(42, Math.min(60, (flowCanvas.height - 24 - (n - 1) * 12) / n));
   const x = (flowCanvas.width - nodeW) / 2;
   const top = 12;
   const gap = 12;
 
+  const shapeMeta = lines.map((line, i) => classifyShape(line, i, n));
+  const weight = (shape) => (shape === 'decision' ? 1.2 : shape === 'terminator' ? 0.95 : shape === 'loop' ? 1.08 : 1.0);
+  const totalWeight = shapeMeta.reduce((acc, shape) => acc + weight(shape), 0);
+  const availableH = flowCanvas.height - 2 * top - (n - 1) * gap;
+  const baseH = Math.max(38, Math.min(64, availableH / totalWeight));
+
+  let yCursor = top;
   for (let i = 0; i < n; i++) {
-    const y = top + i * (nodeH + gap);
-    const shape = classifyShape(lines[i], i, n);
+    const shape = shapeMeta[i];
+    const nodeH = baseH * weight(shape);
+    const y = yCursor;
     const isActive = i === active;
     drawNodeShape(shape, x, y, nodeW, nodeH, isActive ? '#5eead4' : '#3b5fb3');
 
@@ -228,13 +238,27 @@ function drawFlow(step) {
       const y2 = y + nodeH + gap - 2;
       fctx.strokeStyle = i < active ? '#5eead4' : '#6781c1';
       fctx.lineWidth = 2;
-      fctx.beginPath(); fctx.moveTo(cx, y1); fctx.lineTo(cx, y2); fctx.stroke();
-      fctx.beginPath(); fctx.moveTo(cx, y2 + 4); fctx.lineTo(cx - 4, y2 - 2); fctx.lineTo(cx + 4, y2 - 2); fctx.closePath(); fctx.fillStyle = fctx.strokeStyle; fctx.fill();
-      if (classifyShape(lines[i], i, n) === 'decision') {
-        fctx.fillStyle = '#bcd4ff'; fctx.font = '10px sans-serif';
+      fctx.beginPath();
+      fctx.moveTo(cx, y1);
+      fctx.lineTo(cx, y2);
+      fctx.stroke();
+
+      fctx.beginPath();
+      fctx.moveTo(cx, y2 + 4);
+      fctx.lineTo(cx - 4, y2 - 2);
+      fctx.lineTo(cx + 4, y2 - 2);
+      fctx.closePath();
+      fctx.fillStyle = fctx.strokeStyle;
+      fctx.fill();
+
+      if (shape === 'decision') {
+        fctx.fillStyle = '#bcd4ff';
+        fctx.font = '10px sans-serif';
         fctx.fillText('Yes/No', cx + 36, y + nodeH / 2 + 3);
       }
     }
+
+    yCursor += nodeH + gap;
   }
 }
 
@@ -243,13 +267,18 @@ async function animateToStep(fromStep, toStep) {
   const end = toStep.arr;
   const a = toStep.a;
   const b = toStep.b;
-  const frames = 18;
+  const frames = 34;
+  const frameDelayMs = 24;
+
   for (let f = 1; f <= frames; f++) {
-    const t = f / frames;
-    const interp = end.map((v, i) => start[i] === undefined ? v : start[i] + (v - start[i]) * t);
+    const t = easeInOutCubic(f / frames);
+    const interp = end.map((v, i) => {
+      const sv = start[i] ?? v;
+      return sv + (v - sv) * t;
+    });
     draw3DMemory(interp, a, b);
     drawFlow({ line: toStep.line });
-    await sleep(28);
+    await sleep(frameDelayMs);
   }
 }
 
@@ -275,13 +304,17 @@ function loadSimulation() {
 }
 
 async function nextStep() {
+  if (state.isAnimating) return;
   if (!state.steps.length) { statusEl.textContent = 'Load values first.'; return; }
   if (state.stepIndex < state.steps.length - 1) {
+    state.isAnimating = true;
     const prev = state.steps[state.stepIndex];
     const next = state.steps[state.stepIndex + 1];
+    statusEl.textContent = `Animating transition to step ${state.stepIndex + 1}...`;
     await animateToStep(prev, next);
     state.stepIndex += 1;
     renderPanels();
+    state.isAnimating = false;
   }
   statusEl.textContent = state.stepIndex >= state.steps.length - 1 ? 'Done. Sorted complete.' : `Step ${state.stepIndex}/${state.steps.length - 1}`;
 }
