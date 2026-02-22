@@ -144,6 +144,72 @@ function draw3DMemory(step) {
   ctx.fillText('3D Memory Visual', 12, 22);
 }
 
+
+function wrapLines(c, text, maxWidth) {
+  const words = text.split(' ');
+  const lines = [];
+  let cur = '';
+  words.forEach((w) => {
+    const test = cur ? `${cur} ${w}` : w;
+    if (c.measureText(test).width > maxWidth && cur) {
+      lines.push(cur);
+      cur = w;
+    } else {
+      cur = test;
+    }
+  });
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+function drawNodeShape(c, shape, x, y, w, h, color) {
+  c.fillStyle = color;
+  c.strokeStyle = '#dbe6ff';
+  c.lineWidth = 1.4;
+  if (shape === 'terminator') {
+    c.beginPath();
+    c.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+    c.fill(); c.stroke();
+    return;
+  }
+  if (shape === 'decision') {
+    c.beginPath();
+    c.moveTo(x + w / 2, y);
+    c.lineTo(x + w, y + h / 2);
+    c.lineTo(x + w / 2, y + h);
+    c.lineTo(x, y + h / 2);
+    c.closePath();
+    c.fill(); c.stroke();
+    return;
+  }
+  if (shape === 'loop') {
+    const r = 9;
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.lineTo(x + w - r, y);
+    c.quadraticCurveTo(x + w, y, x + w, y + r);
+    c.lineTo(x + w, y + h - r);
+    c.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    c.lineTo(x + r, y + h);
+    c.quadraticCurveTo(x, y + h, x, y + h - r);
+    c.lineTo(x, y + r);
+    c.quadraticCurveTo(x, y, x + r, y);
+    c.closePath();
+    c.fill(); c.stroke();
+    return;
+  }
+  c.fillRect(x, y, w, h);
+  c.strokeRect(x, y, w, h);
+}
+
+function classifyShape(line, idx, total) {
+  if (idx === 0) return 'terminator';
+  if (idx === total - 1) return 'terminator';
+  if (line.includes('if ') || line.includes('while ')) return 'decision';
+  if (line.includes('for ')) return 'loop';
+  return 'process';
+}
+
 function draw3DFlowchart(step) {
   const lines = docs[state.algo].lines;
   const active = step?.line ?? -1;
@@ -152,39 +218,43 @@ function draw3DFlowchart(step) {
   fctx.fillRect(0, 0, flowCanvas.width, flowCanvas.height);
 
   const n = lines.length;
-  const nodeW = Math.min(210, flowCanvas.width - 80);
-  const nodeH = 38;
-  const d = 8;
+  const nodeW = Math.min(540, flowCanvas.width - 70);
+  const nodeH = Math.max(44, Math.min(62, (flowCanvas.height - 28 - (n - 1) * 14) / n));
   const x = (flowCanvas.width - nodeW) / 2;
-  const top = 16;
-  const gap = Math.max(12, Math.min(26, (flowCanvas.height - 2 * top - n * nodeH) / Math.max(1, n - 1)));
+  const top = 14;
+  const gap = 14;
+
+  fctx.font = '12px sans-serif';
+  fctx.textAlign = 'center';
 
   for (let i = 0; i < n; i++) {
     const y = top + i * (nodeH + gap);
     const isActive = i === active;
+    const shape = classifyShape(lines[i], i, n);
     const color = isActive ? '#5eead4' : '#3b5fb3';
 
-    fctx.fillStyle = color;
-    fctx.fillRect(x, y, nodeW, nodeH);
-    fctx.fillStyle = isActive ? '#9dfff2' : '#7ea8ff';
-    fctx.beginPath(); fctx.moveTo(x, y); fctx.lineTo(x + d, y - d); fctx.lineTo(x + d + nodeW, y - d); fctx.lineTo(x + nodeW, y); fctx.closePath(); fctx.fill();
-    fctx.fillStyle = isActive ? '#2b7b72' : '#2d4f95';
-    fctx.beginPath(); fctx.moveTo(x + nodeW, y); fctx.lineTo(x + nodeW + d, y - d); fctx.lineTo(x + nodeW + d, y + nodeH - d); fctx.lineTo(x + nodeW, y + nodeH); fctx.closePath(); fctx.fill();
+    drawNodeShape(fctx, shape, x, y, nodeW, nodeH, color);
 
-    fctx.strokeStyle = '#dbe6ff';
-    fctx.strokeRect(x, y, nodeW, nodeH);
-    fctx.fillStyle = isActive ? '#03201b' : '#ecf2ff';
-    fctx.font = '12px sans-serif';
-    fctx.textAlign = 'center';
-    fctx.fillText(lines[i], x + nodeW / 2, y + 23);
+    const textColor = isActive ? '#03201b' : '#ecf2ff';
+    fctx.fillStyle = textColor;
+    const wrapped = wrapLines(fctx, lines[i], nodeW - 20).slice(0, 3);
+    const ty = y + nodeH / 2 - ((wrapped.length - 1) * 7);
+    wrapped.forEach((line, idx) => fctx.fillText(line, x + nodeW / 2, ty + idx * 14));
 
     if (i < n - 1) {
       const ax = x + nodeW / 2;
-      const ay1 = y + nodeH + 4;
-      const ay2 = y + nodeH + gap - 4;
+      const ay1 = y + nodeH + 3;
+      const ay2 = y + nodeH + gap - 3;
       fctx.strokeStyle = i < active ? '#5eead4' : '#6781c1';
       fctx.lineWidth = 2;
       fctx.beginPath(); fctx.moveTo(ax, ay1); fctx.lineTo(ax, ay2); fctx.stroke();
+      fctx.beginPath();
+      fctx.moveTo(ax, ay2 + 4);
+      fctx.lineTo(ax - 4, ay2 - 2);
+      fctx.lineTo(ax + 4, ay2 - 2);
+      fctx.closePath();
+      fctx.fillStyle = fctx.strokeStyle;
+      fctx.fill();
     }
   }
 }
