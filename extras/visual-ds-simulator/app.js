@@ -9,19 +9,27 @@ const docs = {
   linearSearch: { lines: ['for i = 0..n-1', 'if a[i] == target ?', 'return index i', 'continue scan', 'not found', 'end'] },
   binarySearch: { lines: ['sort array (if needed)', 'low=0, high=n-1', 'mid=(low+high)//2', 'if a[mid] == target ?', 'adjust low/high by compare', 'end'] },
   jumpSearch: { lines: ['sort array (if needed)', 'jump by block size √n', 'find block where target may exist', 'linear scan inside block', 'return index or not found', 'end'] },
+  linkedListTraversal: { lines: ['head = first node', 'while node != null', 'visit node.value', 'node = node.next', 'repeat', 'end'] },
+  treeBFS: { lines: ['build tree nodes', 'enqueue root', 'while queue not empty', 'dequeue + visit node', 'enqueue children', 'end'] },
+  graphBFS: { lines: ['build adjacency list', 'enqueue start + mark visited', 'while queue not empty', 'dequeue vertex', 'enqueue unvisited neighbors', 'end'] },
+  hashingLinearProbe: { lines: ['init table with empty slots', 'hash(key) = key % size', 'if collision, probe next slot', 'insert / search in probed slot', 'repeat until found/empty', 'end'] },
 };
 
 const algoMeta = {
-  bubble: { type: 'sort', insight: 'Bubble compares neighbors and pushes larger values right on each pass.' },
-  selection: { type: 'sort', insight: 'Selection finds minimum in unsorted region and places it at the boundary.' },
-  insertion: { type: 'sort', insight: 'Insertion grows a sorted prefix by inserting each key into position.' },
-  merge: { type: 'sort', insight: 'Merge sort uses divide-and-conquer: split, sort, then merge.' },
-  quick: { type: 'sort', insight: 'Quick sort partitions around a pivot and recurses on two sides.' },
-  heap: { type: 'sort', insight: 'Heap sort repeatedly extracts max from a max-heap.' },
-  shell: { type: 'sort', insight: 'Shell sort performs gapped insertion passes with shrinking gaps.' },
-  linearSearch: { type: 'search', insight: 'Linear search checks one index at a time.' },
-  binarySearch: { type: 'search', insight: 'Binary search halves the search interval each comparison.' },
-  jumpSearch: { type: 'search', insight: 'Jump search skips blocks first, then scans inside one block.' },
+  bubble: { type: 'sort', insight: 'Bubble compares neighbors and pushes larger values right on each pass.', targetRequired: false },
+  selection: { type: 'sort', insight: 'Selection finds minimum in unsorted region and places it at the boundary.', targetRequired: false },
+  insertion: { type: 'sort', insight: 'Insertion grows a sorted prefix by inserting each key into position.', targetRequired: false },
+  merge: { type: 'sort', insight: 'Merge sort uses divide-and-conquer: split, sort, then merge.', targetRequired: false },
+  quick: { type: 'sort', insight: 'Quick sort partitions around a pivot and recurses on two sides.', targetRequired: false },
+  heap: { type: 'sort', insight: 'Heap sort repeatedly extracts max from a max-heap.', targetRequired: false },
+  shell: { type: 'sort', insight: 'Shell sort performs gapped insertion passes with shrinking gaps.', targetRequired: false },
+  linearSearch: { type: 'search', insight: 'Linear search checks one index at a time.', targetRequired: true },
+  binarySearch: { type: 'search', insight: 'Binary search halves the search interval each comparison.', targetRequired: true },
+  jumpSearch: { type: 'search', insight: 'Jump search skips blocks first, then scans inside one block.', targetRequired: true },
+  linkedListTraversal: { type: 'ds', insight: 'Linked list traversal follows next pointers node by node.', targetRequired: false },
+  treeBFS: { type: 'ds', insight: 'Tree BFS visits nodes level-by-level using a queue.', targetRequired: false },
+  graphBFS: { type: 'ds', insight: 'Graph BFS explores breadth-first from a start vertex.', targetRequired: false },
+  hashingLinearProbe: { type: 'ds', insight: 'Linear probing resolves collisions by checking the next slots.', targetRequired: true },
 };
 
 const state = {
@@ -334,8 +342,119 @@ function generateSearchSteps(algo, input, target) {
   return out;
 }
 
+function generateDsSteps(algo, input, target) {
+  const out = [];
+
+  if (algo === 'linkedListTraversal') {
+    pushStep(out, input, -1, -1, 'Create linked list from input sequence', 0, 'Each array value is treated as one linked-list node in order.');
+    for (let i = 0; i < input.length; i++) {
+      pushStep(out, input, i, -1, `Visit node ${i}`, 2, `Read node value ${input[i]} and move pointer to next node.`);
+      if (i < input.length - 1) {
+        pushStep(out, input, i, i + 1, 'Move to next node', 3, 'Advance pointer through next link.');
+      }
+    }
+    pushStep(out, input, -1, -1, 'Traversal complete', 5, 'Pointer reached null, traversal ended.');
+    return out;
+  }
+
+  if (algo === 'treeBFS') {
+    const arr = [...input];
+    pushStep(out, arr, 0, -1, 'Build tree nodes from level-order input', 0, 'Input is interpreted as level-order binary tree values.');
+    if (!arr.length) return out;
+    const q = [0];
+    pushStep(out, arr, 0, -1, 'Enqueue root node', 1, 'Queue starts with root index 0.');
+    while (q.length) {
+      const idx = q.shift();
+      pushStep(out, arr, idx, -1, `Dequeue and visit node ${idx}`, 3, `Visit value ${arr[idx]} in BFS order.`);
+      const l = (2 * idx) + 1;
+      const r = (2 * idx) + 2;
+      if (l < arr.length) {
+        q.push(l);
+        pushStep(out, arr, idx, l, `Enqueue left child ${l}`, 4, 'Add left child to queue for future visit.');
+      }
+      if (r < arr.length) {
+        q.push(r);
+        pushStep(out, arr, idx, r, `Enqueue right child ${r}`, 4, 'Add right child to queue for future visit.');
+      }
+    }
+    pushStep(out, arr, -1, -1, 'BFS complete', 5, 'Queue is empty; all tree nodes visited.');
+    return out;
+  }
+
+  if (algo === 'graphBFS') {
+    const nodes = [...input];
+    const n = nodes.length;
+    const adj = Array.from({ length: n }, () => []);
+    for (let i = 0; i < n; i++) {
+      if (i + 1 < n) adj[i].push(i + 1);
+      if (i + 2 < n) adj[i].push(i + 2);
+    }
+    pushStep(out, nodes, -1, -1, 'Build sample adjacency list', 0, 'Connect each vertex to next one and next-two for visual BFS demo graph.');
+    if (!n) return out;
+    const visited = new Set([0]);
+    const q = [0];
+    pushStep(out, nodes, 0, -1, 'Enqueue start vertex 0', 1, 'Start BFS from first vertex.');
+    while (q.length) {
+      const v = q.shift();
+      pushStep(out, nodes, v, -1, `Dequeue vertex ${v}`, 3, `Visit vertex value ${nodes[v]}.`);
+      for (const nei of adj[v]) {
+        if (!visited.has(nei)) {
+          visited.add(nei);
+          q.push(nei);
+          pushStep(out, nodes, v, nei, `Enqueue unvisited neighbor ${nei}`, 4, 'Mark neighbor visited and queue it.');
+        }
+      }
+    }
+    pushStep(out, nodes, -1, -1, 'Graph BFS complete', 5, 'Queue exhausted; reachable vertices explored.');
+    return out;
+  }
+
+  if (algo === 'hashingLinearProbe') {
+    const keys = [...input];
+    const size = Math.max(7, (keys.length * 2) + 1);
+    const table = Array(size).fill(0);
+    pushStep(out, table, -1, -1, `Initialize hash table size=${size}`, 0, 'Use open addressing table with linear probing.');
+
+    for (const key of keys) {
+      let idx = Math.abs(key) % size;
+      pushStep(out, table, idx, -1, `Hash key ${key} -> ${idx}`, 1, 'Compute base slot from key modulo table size.');
+      while (table[idx] !== 0) {
+        pushStep(out, table, idx, -1, `Collision at slot ${idx}`, 2, 'Slot occupied; linearly probe next index.');
+        idx = (idx + 1) % size;
+      }
+      table[idx] = key;
+      pushStep(out, table, idx, -1, `Insert key ${key} at slot ${idx}`, 3, 'Found empty slot; insert key here.');
+    }
+
+    if (target !== null && !Number.isNaN(target)) {
+      let idx = Math.abs(target) % size;
+      pushStep(out, table, idx, -1, `Search target ${target} from slot ${idx}`, 3, 'Begin linear probing search from hashed slot.');
+      for (let c = 0; c < size; c++) {
+        if (table[idx] === target) {
+          pushStep(out, table, idx, -1, `Found target at slot ${idx}`, 4, 'Target key found during probing.');
+          pushStep(out, table, -1, -1, 'Hash operation complete', 5, 'Insertion + lookup demo completed.');
+          return out;
+        }
+        if (table[idx] === 0) break;
+        idx = (idx + 1) % size;
+        pushStep(out, table, idx, -1, `Probe next slot ${idx}`, 4, 'Continue probing until key found or empty slot encountered.');
+      }
+      pushStep(out, table, -1, -1, 'Target not found in table', 5, 'Reached empty slot or full probe cycle without match.');
+      return out;
+    }
+
+    pushStep(out, table, -1, -1, 'Hash insertion complete', 5, 'All keys inserted using linear probing.');
+    return out;
+  }
+
+  return out;
+}
+
 function generateSteps(algo, input, target) {
-  return algoMeta[algo].type === 'sort' ? generateSortSteps(algo, input) : generateSearchSteps(algo, input, target);
+  const kind = algoMeta[algo].type;
+  if (kind === 'sort') return generateSortSteps(algo, input);
+  if (kind === 'search') return generateSearchSteps(algo, input, target);
+  return generateDsSteps(algo, input, target);
 }
 
 function drawBar3D(x, y, w, h, color, value, idx) {
@@ -557,14 +676,14 @@ function loadSimulation() {
     statusEl.textContent = 'Please enter valid numbers (comma separated).';
     return;
   }
-  if (algoMeta[state.algo].type === 'search' && (state.target === null || Number.isNaN(state.target))) {
-    statusEl.textContent = 'Please enter a valid target for searching.';
+  if (algoMeta[state.algo].targetRequired && (state.target === null || Number.isNaN(state.target))) {
+    statusEl.textContent = 'Please enter a valid target for this algorithm.';
     return;
   }
 
   state.steps = generateSteps(state.algo, state.values, state.target);
   state.stepIndex = 0;
-  statusEl.textContent = `Loaded ${state.algo} (${algoMeta[state.algo].type}) with ${state.values.length} values${algoMeta[state.algo].type === 'search' ? `, target=${state.target}` : ''}. Use Prev/Next/Auto Play/Pause operations.`;
+  statusEl.textContent = `Loaded ${state.algo} (${algoMeta[state.algo].type}) with ${state.values.length} values${algoMeta[state.algo].targetRequired ? `, target=${state.target}` : ''}. Use Prev/Next/Auto Play/Pause operations.`;
   renderPanels();
 }
 
@@ -636,7 +755,7 @@ document.getElementById('resetBtn').addEventListener('click', resetAll);
 
 algoSelect.addEventListener('change', () => {
   state.algo = algoSelect.value;
-  targetInput.disabled = algoMeta[state.algo].type !== 'search';
+  targetInput.disabled = !algoMeta[state.algo].targetRequired;
   renderPanels();
 });
 
@@ -645,6 +764,6 @@ window.addEventListener('resize', () => {
   renderPanels();
 });
 
-targetInput.disabled = true;
+targetInput.disabled = !algoMeta[state.algo].targetRequired;
 resize();
 renderPanels();

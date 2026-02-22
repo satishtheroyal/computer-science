@@ -6,8 +6,13 @@ Re-started as a **feature-by-feature** algorithm visualizer with slower, explain
 - User selects an algorithm:
   - Sorting: Bubble / Selection / Insertion / Merge / Quick / Heap / Shell
   - Searching: Linear Search / Binary Search / Jump Search
+  - Data structures / traversal / hashing:
+    - Linked List Traversal
+    - Tree BFS Traversal
+    - Graph BFS Traversal
+    - Hashing with Linear Probing (insert + search)
 - User enters input values (comma separated).
-- For searching algorithms, user enters a target value.
+- For target-based algorithms, user enters a target value.
 - User can run operations for every algorithm using:
   - **Load**
   - **Prev Step**
