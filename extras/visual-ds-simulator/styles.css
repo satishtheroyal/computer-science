@@ -37,6 +37,17 @@ button { background: linear-gradient(120deg, #2b468b, #375aa8); cursor: pointer;
 button:hover { filter: brightness(1.1); }
 button.ghost { background: transparent; }
 #deleteBtn { background: linear-gradient(120deg, #7f2236, #a12a48); }
+.speed-label { display: flex; gap: 0.45rem; align-items: center; color: #c9d7ff; }
+#speedRange { width: 180px; }
+.howto {
+  margin: 0.25rem 0 0;
+  color: #c2d0ff;
+  font-size: 0.92rem;
+  background: #10183a;
+  border: 1px dashed #35508e;
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+}
 #scene {
   width: 100%;
   height: 410px;

@@ -41,6 +41,24 @@ const docs = {
   },
 };
 
+
+
+const helperText = {
+  array: "Array: Insert appends, delete/search scan linearly.",
+  linkedList: "Linked List: Insert adds at head; delete/search traverse pointers.",
+  stack: "Stack: Insert = push, delete = pop from top.",
+  queue: "Queue: Insert = enqueue rear, delete = dequeue front.",
+  binarySearchTree: "BST: Values branch left (<) or right (>=) during insert/search/delete.",
+};
+
+const examples = {
+  array: [2, 6, 9, 13],
+  linkedList: [9, 4, 7],
+  stack: [3, 8, 10],
+  queue: [5, 11, 14],
+  binarySearchTree: [10, 6, 14, 2, 8, 12, 17],
+};
+
 const DS = {
   array: () => {
     const arr = [];
@@ -180,7 +198,11 @@ const valueInput = document.getElementById("valueInput");
 const codeTraceEl = document.getElementById("codeTrace");
 const flowTraceEl = document.getElementById("flowTrace");
 const flowStatusEl = document.getElementById("flowStatus");
+const howToEl = document.getElementById("howTo");
+const speedRange = document.getElementById("speedRange");
+const loadExampleBtn = document.getElementById("loadExampleBtn");
 const opButtons = ["insertBtn", "deleteBtn", "searchBtn", "resetBtn", "stepBtn", "playBtn", "pauseBtn", "structureSelect"].map((id) => document.getElementById(id));
+let animationDelay = 220;
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function currentModel() { return models[state.type]; }
@@ -270,6 +292,7 @@ function renderStructure() {
   drawTraceInMainCanvas();
 
   const doc = docs[state.type];
+  howToEl.textContent = helperText[state.type];
   codeEl.textContent = doc.code.join("\n");
   flowEl.textContent = doc.flowchart.join("\n");
   complexityBody.innerHTML = doc.complexity.map((r) => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
@@ -297,6 +320,17 @@ function buildTrace(op, value, ok) {
   };
 }
 
+function loadExampleForCurrentStructure() {
+  const model = currentModel();
+  model.clear();
+  examples[state.type].forEach((v) => model.insert(v));
+  state.highlight = null;
+  state.highlightValue = null;
+  state.action = `Loaded ${state.type} example`;
+  setTrace([], []);
+  renderStructure();
+}
+
 async function animateTraversal(path, isBst = false) {
   for (const step of path) {
     if (isBst) {
@@ -307,7 +341,7 @@ async function animateTraversal(path, isBst = false) {
       state.action = `Visiting index ${step.index}`;
     }
     renderStructure();
-    await wait(220);
+    await wait(animationDelay);
   }
 }
 
@@ -321,7 +355,7 @@ async function applyOp(op) {
   try {
     if (op === "insert") {
       if (value === null || Number.isNaN(value)) { statusEl.textContent = "Enter a valid number for insert."; return; }
-      state.action = `Inserting ${value}`; renderStructure(); await wait(180);
+      state.action = `Inserting ${value}`; renderStructure(); await wait(Math.max(120, animationDelay - 40));
       const r = model.insert(value); ok = r.ok;
       if (state.type === "binarySearchTree") state.highlightValue = value; else state.highlight = r.index;
       state.action = ok ? `Inserted ${value}` : `Insert failed`;
@@ -331,7 +365,7 @@ async function applyOp(op) {
       if (state.type === "stack" || state.type === "queue") {
         const r = model.deleteDefault();
         if (!r.ok) { statusEl.textContent = "Nothing to delete; structure is empty."; return; }
-        state.highlight = r.index; state.action = state.type === "stack" ? "Popping top" : "Dequeuing front"; renderStructure(); await wait(200);
+        state.highlight = r.index; state.action = state.type === "stack" ? "Popping top" : "Dequeuing front"; renderStructure(); await wait(animationDelay);
         ok = true; state.action = `${state.type === "stack" ? "Popped" : "Dequeued"} ${r.value}`;
       } else {
         if (value === null || Number.isNaN(value)) { statusEl.textContent = "Enter a valid number to delete."; return; }
@@ -392,6 +426,8 @@ document.getElementById("playBtn").addEventListener("click", () => {
   }, 650);
 });
 document.getElementById("pauseBtn").addEventListener("click", stopAutoPlay);
+speedRange.addEventListener("input", (e) => { animationDelay = Number(e.target.value); });
+loadExampleBtn.addEventListener("click", loadExampleForCurrentStructure);
 
 window.addEventListener("resize", () => { resizeCanvas(); renderStructure(); drawTraceMirror(); });
 

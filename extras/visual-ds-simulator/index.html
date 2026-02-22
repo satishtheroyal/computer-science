@@ -9,7 +9,7 @@
   <body>
     <header>
       <h1>3D Data Structures Simulator</h1>
-      <p>Interactive structures with algorithm code, flowchart, memory model, and complexity insights.</p>
+      <p>VisualAlgo-style interactive learning: simulate operations, watch control flow, and inspect memory in one place.</p>
     </header>
 
     <main>
@@ -34,6 +34,14 @@
           <button id="resetBtn" class="ghost">Reset</button>
         </div>
 
+        <div class="row">
+          <button id="loadExampleBtn">Load Example</button>
+          <label class="speed-label">Animation speed
+            <input id="speedRange" type="range" min="80" max="700" value="220" />
+          </label>
+        </div>
+
+        <p id="howTo" class="howto"></p>
         <small id="status">Ready.</small>
       </section>
 
