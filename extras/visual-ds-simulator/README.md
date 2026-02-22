@@ -1,28 +1,27 @@
 # Sorting + Searching Visual Simulator
 
-Re-started as a **feature-by-feature** learning project focused on step-by-step algorithm simulation with visual clarity.
+Re-started as a **feature-by-feature** algorithm visualizer with slower, explainable transitions.
 
-## Current phase (sorting + searching module)
+## Current phase (extended algorithms)
 - User selects an algorithm:
-  - Sorting: Bubble / Selection / Insertion / Merge / Quick
-  - Searching: Linear Search / Binary Search
+  - Sorting: Bubble / Selection / Insertion / Merge / Quick / Heap / Shell
+  - Searching: Linear Search / Binary Search / Jump Search
 - User enters input values (comma separated).
 - For searching algorithms, user enters a target value.
-- User presses **Next Step** to walk execution one step at a time.
-- Main 3D memory visual highlights active indices for each operation.
-- Step details are shown directly under the 3D memory panel in an explainable format:
+- User can run operations for every algorithm using:
+  - **Load**
+  - **Prev Step**
+  - **Next Step**
+  - **Auto Play**
+  - **Pause**
+  - **Reset**
+- Step details are explainable and include:
   - action
   - why the step happens
-  - algorithm insight
+  - technique insight
   - active code line
-- Transitions are intentionally slower and smoother for classroom-style explanation.
-- Pseudocode + flowchart are combined into a single **3D visual control-flow panel**.
-- Flowchart node shapes are compact and proportioned for better readability.
-- Dry run panel shows cumulative step history side-by-side.
-
-## Notes on searching mode
-- **Linear Search** scans left-to-right and highlights the currently checked index.
-- **Binary Search** first sorts a copy of input, then visualizes low/high interval narrowing.
+- Flowchart uses compact shapes for better panel fit.
+- Transitions are intentionally slow and smooth for teaching.
 
 ## Run
 

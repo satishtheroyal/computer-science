@@ -58,3 +58,5 @@ small { color: var(--accent); }
   .under-scene { height: 200px; }
   .grid { grid-template-rows: 340px 220px; }
 }
+
+button:disabled { opacity: 0.5; cursor: not-allowed; }
