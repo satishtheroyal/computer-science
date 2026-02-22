@@ -5,14 +5,11 @@ Re-started as a **feature-by-feature** learning project focused first on sorting
 ## Current phase (basic sorting module)
 - User selects sorting technique (Bubble / Selection / Insertion).
 - User enters input values.
-- Side-by-side panels show:
-  - pseudocode / algorithm,
-  - flowchart,
-  - dry run history,
-  - current step details.
-- Main canvas shows a 3D-style memory visualization of values.
-- User presses **Next Step** to walk through execution step-by-step.
-- Desktop layout uses a single-screen landscape orientation so visuals + panels are visible together (no scrolling).
+- User presses **Next Step** to walk execution one step at a time.
+- Main 3D memory visual is shown with highlighted compared/swap indices.
+- Step details are shown directly under the 3D memory visual panel.
+- Pseudocode + Flowchart are combined into a single **3D visual control-flow panel** (code shown inside flow elements).
+- Dry run panel shows cumulative step history side-by-side.
 
 ## Run
 
