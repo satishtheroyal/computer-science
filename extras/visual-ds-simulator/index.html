@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sorting + Searching Visual Simulator</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Sorting + Searching Visual Simulator (Step-by-Step)</h1>
+      <p>Choose algorithm, load values, and press Next Step for slower, explainable step-by-step flow.</p>
+    </header>
+
+    <main>
+      <section class="panel controls">
+        <h2>Setup</h2>
+        <div class="row">
+          <label>
+            Technique
+            <select id="algorithmSelect">
+              <option value="bubble">Bubble Sort</option>
+              <option value="selection">Selection Sort</option>
+              <option value="insertion">Insertion Sort</option>
+              <option value="merge">Merge Sort</option>
+              <option value="quick">Quick Sort</option>
+              <option value="heap">Heap Sort</option>
+              <option value="shell">Shell Sort</option>
+              <option value="linearSearch">Linear Search</option>
+              <option value="jumpSearch">Jump Search</option>
+              <option value="binarySearch">Binary Search</option>
+              <option value="linkedListSinglyInsert">Linked List (Singly) Insert</option>
+              <option value="linkedListSinglyDelete">Linked List (Singly) Delete</option>
+              <option value="linkedListSinglySearch">Linked List (Singly) Search</option>
+              <option value="linkedListSinglyUpdate">Linked List (Singly) Update</option>
+              <option value="linkedListDoublyInsert">Linked List (Doubly) Insert</option>
+              <option value="linkedListDoublyDelete">Linked List (Doubly) Delete</option>
+              <option value="linkedListDoublySearch">Linked List (Doubly) Search</option>
+              <option value="linkedListDoublyUpdate">Linked List (Doubly) Update</option>
+              <option value="linkedListCircularInsert">Linked List (Circular) Insert</option>
+              <option value="linkedListCircularDelete">Linked List (Circular) Delete</option>
+              <option value="linkedListCircularSearch">Linked List (Circular) Search</option>
+              <option value="linkedListCircularUpdate">Linked List (Circular) Update</option>
+              <option value="treeBFS">Tree BFS Traversal</option>
+              <option value="graphBFS">Graph BFS Traversal</option>
+              <option value="hashingLinearProbe">Hashing (Linear Probing)</option>
+              <option value="stackArrayPush">Stack (Array) Push</option>
+              <option value="stackArrayPop">Stack (Array) Pop</option>
+              <option value="stackArrayPeek">Stack (Array) Peek</option>
+              <option value="stackArrayUpdateTop">Stack (Array) Update Top</option>
+              <option value="stackLinkedPush">Stack (Linked) Push</option>
+              <option value="stackLinkedPop">Stack (Linked) Pop</option>
+              <option value="stackLinkedUpdateTop">Stack (Linked) Update Top</option>
+              <option value="queueLinearEnqueue">Queue (Linear) Enqueue</option>
+              <option value="queueLinearDequeue">Queue (Linear) Dequeue</option>
+              <option value="queueLinearUpdateFront">Queue (Linear) Update Front</option>
+              <option value="queueCircularEnqueue">Queue (Circular) Enqueue</option>
+              <option value="queueCircularDequeue">Queue (Circular) Dequeue</option>
+              <option value="queueCircularUpdateFront">Queue (Circular) Update Front</option>
+              <option value="dequePushFront">Deque Push Front</option>
+              <option value="dequePushBack">Deque Push Back</option>
+              <option value="dequePopFront">Deque Pop Front</option>
+              <option value="dequePopBack">Deque Pop Back</option>
+              <option value="dequeUpdateFront">Deque Update Front</option>
+              <option value="dequeUpdateBack">Deque Update Back</option></select>
+          </label>
+          <label class="grow" id="valuesLabel">
+            Generated values
+            <input id="valuesInput" type="text" placeholder="Click Random Numbers" readonly />
+          </label>
+          <label id="countLabel">
+            Count
+            <input id="countInput" type="number" min="0" max="20" value="6" />
+          </label>
+          <button id="randomBtn" class="ghost">Random Numbers</button>
+          <label id="targetLabel">
+            Target / Value
+            <input id="targetInput" type="number" placeholder="e.g. 7" />
+          </label>
+          <label id="positionLabel">
+            Position
+            <select id="positionSelect">
+              <option value="beginning">Beginning</option>
+              <option value="middle">Middle</option>
+              <option value="end">End</option>
+            </select>
+          </label>
+          <label id="updateLabel">
+            New Value (for update)
+            <input id="updateValueInput" type="number" placeholder="e.g. 99" />
+          </label>
+          <button id="loadBtn">Load</button>
+          <button id="prevBtn" class="ghost">Prev Step</button>
+          <button id="nextBtn">Next Step</button>
+          <button id="playBtn">Auto Play</button>
+          <button id="pauseBtn" class="ghost">Pause</button>
+          <button id="resetBtn" class="ghost">Reset</button>
+          <label>
+            Transition Speed
+            <input id="speedRange" type="range" min="0.4" max="2.2" step="0.1" value="1" />
+          </label>
+          <small id="speedLabel">Speed: 1.0x</small>
+          <label id="opSelectLabel">
+            Array Operation
+            <select id="opSelect">
+              <option value="insert">Insert</option>
+              <option value="delete">Delete</option>
+              <option value="search">Search</option>
+              <option value="access">Access</option>
+              <option value="traverse">Traverse</option>
+              <option value="randomize">Randomize</option>
+              <option value="reset">Reset</option>
+            </select>
+          </label>
+          <label id="opIndexLabel">
+            Op Index
+            <input id="opIndexInput" type="number" placeholder="index" />
+          </label>
+          <label id="opValueLabel">
+            Op Value
+            <input id="opValueInput" type="number" placeholder="value" />
+          </label>
+          <button id="runOpBtn">Run Op</button>
+        </div>
+        <small id="status">Load values to begin.</small>
+      </section>
+
+      <section class="workspace">
+        <section class="panel scene-panel">
+          <h2>3D Memory Visual</h2>
+          <div id="scene">
+            <canvas id="vizCanvas" width="1200" height="420"></canvas>
+          </div>
+          <article class="under-scene">
+            <h3>Step Details (in visual context)</h3>
+            <pre id="stepBlock"></pre>
+          </article>
+        </section>
+
+        <section class="panel grid">
+          <article class="flow-panel">
+            <h3>Code View + Control Flow (Line-by-Line)</h3>
+            <canvas id="flowCanvas" width="700" height="420"></canvas>
+          </article>
+          <article class="dry-panel">
+            <h3>Dry Run</h3>
+            <pre id="dryRunBlock"></pre>
+          </article>
+        </section>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -41,3 +41,4 @@ Project Title | Description | Author(s) | Repository
 :-- | :-- | :--: | :--
 Observatory | Interactively displays temperatures and deviations all around the world from 1975 to 2015 | [spamegg](https://github.com/spamegg1) | [ScalaCapstone](https://github.com/spamegg1/ScalaCapstone)
 Cloud Data Processing | Querying airline traffic data with batch and stream processing on cloud services | [MartinOvington](https://github.com/MartinOvington) | [CloudCapstone](https://github.com/MartinOvington/cloud-specialization)
+3D Visual Algorithms Simulator | Interactive 3D step-by-step simulator for sorting and searching algorithms with code-flow panels, dry runs, and memory visuals | OSSU contributor demo | [Local project](extras/visual-ds-simulator/README.md)
