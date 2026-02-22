@@ -433,50 +433,69 @@ function drawNodeShape(shape, x, y, w, h, color) {
   fctx.strokeRect(x, y, w, h);
 }
 
-function drawFlow(step) {
+function drawCodeFlow(step) {
   const lines = docs[state.algo].lines;
   const active = step?.line ?? -1;
+
   fctx.clearRect(0, 0, flowCanvas.width, flowCanvas.height);
   fctx.fillStyle = '#0c1430';
   fctx.fillRect(0, 0, flowCanvas.width, flowCanvas.height);
 
-  const n = lines.length;
-  const nodeW = Math.min(420, flowCanvas.width - 90);
-  const x = (flowCanvas.width - nodeW) / 2;
-  const top = 12;
-  const gap = 10;
-  const shapeMeta = lines.map((line, i) => classifyShape(line, i, n));
-  const weight = (shape) => (shape === 'decision' ? 1.08 : shape === 'terminator' ? 0.9 : shape === 'loop' ? 1.0 : 0.95);
-  const totalWeight = shapeMeta.reduce((acc, shape) => acc + weight(shape), 0);
-  const availableH = flowCanvas.height - (2 * top) - ((n - 1) * gap);
-  const baseH = Math.max(28, Math.min(44, availableH / Math.max(1, totalWeight)));
+  const padX = 18;
+  const padY = 18;
+  const lineHeight = 44;
+  const gutterW = 42;
 
-  let yCursor = top;
-  for (let i = 0; i < n; i++) {
-    const shape = shapeMeta[i];
-    const nodeH = baseH * weight(shape);
-    const y = yCursor;
-    drawNodeShape(shape, x, y, nodeW, nodeH, i === active ? '#5eead4' : '#3b5fb3');
+  fctx.fillStyle = '#7e94d1';
+  fctx.font = '12px monospace';
+  fctx.textAlign = 'left';
+  fctx.fillText('// Code control-flow view', padX, 12);
 
-    fctx.fillStyle = i === active ? '#03201b' : '#ecf2ff';
-    fctx.font = '11px sans-serif';
-    fctx.textAlign = 'center';
-    const wrapped = wrapLines(fctx, lines[i], nodeW - 20).slice(0, 3);
-    const textY = y + (nodeH / 2) - ((wrapped.length - 1) * 6);
-    wrapped.forEach((line, idx) => fctx.fillText(line, x + nodeW / 2, textY + (idx * 12)));
+  lines.forEach((codeLine, i) => {
+    const y = padY + (i * lineHeight);
+    const isActive = i === active;
+    const isVisited = i < active;
 
-    if (i < n - 1) {
-      const cx = x + nodeW / 2;
-      const y1 = y + nodeH + 2;
-      const y2 = y + nodeH + gap - 2;
-      fctx.strokeStyle = i < active ? '#5eead4' : '#6781c1';
-      fctx.lineWidth = 1.7;
-      fctx.beginPath(); fctx.moveTo(cx, y1); fctx.lineTo(cx, y2); fctx.stroke();
-      fctx.beginPath(); fctx.moveTo(cx, y2 + 3); fctx.lineTo(cx - 3.5, y2 - 1); fctx.lineTo(cx + 3.5, y2 - 1); fctx.closePath(); fctx.fillStyle = fctx.strokeStyle; fctx.fill();
+    fctx.fillStyle = isActive ? '#5eead4' : isVisited ? '#213d74' : '#162449';
+    fctx.fillRect(padX, y, flowCanvas.width - (padX * 2), lineHeight - 7);
+
+    fctx.strokeStyle = isActive ? '#5eead4' : '#2f4d89';
+    fctx.lineWidth = isActive ? 2 : 1;
+    fctx.strokeRect(padX, y, flowCanvas.width - (padX * 2), lineHeight - 7);
+
+    fctx.fillStyle = isActive ? '#03201b' : '#aac4ff';
+    fctx.font = '12px monospace';
+    fctx.fillText(String(i + 1).padStart(2, '0'), padX + 9, y + 22);
+
+    fctx.fillStyle = isActive ? '#03201b' : '#ecf2ff';
+    const wrapped = wrapLines(fctx, codeLine, flowCanvas.width - (padX * 2) - gutterW - 12).slice(0, 2);
+    wrapped.forEach((lineText, idx) => {
+      fctx.fillText(lineText, padX + gutterW, y + 16 + (idx * 12));
+    });
+
+    if (isActive) {
+      fctx.fillStyle = '#5eead4';
+      fctx.beginPath();
+      fctx.moveTo(padX - 10, y + 15);
+      fctx.lineTo(padX - 2, y + 20);
+      fctx.lineTo(padX - 10, y + 25);
+      fctx.closePath();
+      fctx.fill();
+      fctx.fillText('executing', flowCanvas.width - 86, y + 22);
     }
 
-    yCursor += nodeH + gap;
-  }
+    if (i < lines.length - 1) {
+      const cx = padX + 10;
+      const y1 = y + lineHeight - 7;
+      const y2 = y + lineHeight + 2;
+      fctx.strokeStyle = i < active ? '#5eead4' : '#4f6aa8';
+      fctx.lineWidth = 1.2;
+      fctx.beginPath();
+      fctx.moveTo(cx, y1);
+      fctx.lineTo(cx, y2);
+      fctx.stroke();
+    }
+  });
 }
 
 async function animateToStep(fromStep, toStep) {
@@ -492,7 +511,7 @@ async function animateToStep(fromStep, toStep) {
       return sv + ((v - sv) * t);
     });
     draw3DMemory(interp, toStep.a, toStep.b);
-    drawFlow({ line: toStep.line });
+    drawCodeFlow({ line: toStep.line });
     await sleep(frameDelayMs);
   }
 }
@@ -516,7 +535,7 @@ function renderPanels() {
     : 'Press Load to generate step-by-step dry run.';
 
   draw3DMemory(current?.arr ?? state.values, current?.a ?? -1, current?.b ?? -1);
-  drawFlow(current);
+  drawCodeFlow(current);
   updateButtons();
 }
 

@@ -20,7 +20,7 @@ Re-started as a **feature-by-feature** algorithm visualizer with slower, explain
   - why the step happens
   - technique insight
   - active code line
-- Flowchart uses compact shapes for better panel fit.
+- Code view shows algorithm lines and highlights control flow line-by-line.
 - Transitions are intentionally slow and smooth for teaching.
 
 ## Run
