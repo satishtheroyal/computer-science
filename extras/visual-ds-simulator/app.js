@@ -124,6 +124,10 @@ const playBtn = document.getElementById('playBtn');
 const pauseBtn = document.getElementById('pauseBtn');
 const speedRange = document.getElementById('speedRange');
 const speedLabel = document.getElementById('speedLabel');
+const opSelect = document.getElementById('opSelect');
+const opIndexInput = document.getElementById('opIndexInput');
+const opValueInput = document.getElementById('opValueInput');
+const runOpBtn = document.getElementById('runOpBtn');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
@@ -1111,6 +1115,95 @@ function getOrientationLabel(algo) {
   return 'Array/bar memory orientation';
 }
 
+class ArrayVisualizer {
+  constructor(getArray, setArray) {
+    this.getArray = getArray;
+    this.setArray = setArray;
+    this.initial = [3, 8, 2, 5];
+  }
+
+  async animateUpdate(nextArr, hi = -1) {
+    const curr = [...this.getArray()];
+    const frames = Math.max(14, Math.round(30 / state.speed));
+    for (let f = 1; f <= frames; f++) {
+      const t = easeInOutCubic(f / frames);
+      const interp = nextArr.map((v, i) => {
+        const sv = curr[i] ?? v;
+        return sv + ((v - sv) * t);
+      });
+      draw3DMemory(interp, hi, -1);
+      await sleep(Math.max(8, Math.round(20 / state.speed)));
+    }
+    this.setArray([...nextArr]);
+  }
+
+  async insert({ value, index }, log) {
+    const arr = [...this.getArray()];
+    const i = Math.max(0, Math.min(index, arr.length));
+    log(`Insert ${value} at index ${i}.`);
+    arr.splice(i, 0, value);
+    await this.animateUpdate(arr, i);
+  }
+
+  async delete({ index }, log) {
+    const arr = [...this.getArray()];
+    if (!arr.length) { log('Delete failed: array is empty.'); return; }
+    const i = Math.max(0, Math.min(index, arr.length - 1));
+    log(`Delete at index ${i} (value ${arr[i]}).`);
+    arr.splice(i, 1);
+    await this.animateUpdate(arr, i);
+  }
+
+  async search({ value }, log) {
+    const arr = [...this.getArray()];
+    log(`Searching for value ${value}.`);
+    for (let i = 0; i < arr.length; i++) {
+      draw3DMemory(arr, i, -1);
+      log(`Checking index ${i}: ${arr[i]}`);
+      await sleep(Math.max(80, Math.round(300 / state.speed)));
+      if (arr[i] === value) { log(`Found ${value} at index ${i}.`); return; }
+    }
+    log(`Value ${value} not found.`);
+  }
+
+  async access({ index }, log) {
+    const arr = [...this.getArray()];
+    if (index < 0 || index >= arr.length) { log('Access failed: invalid index.'); return; }
+    draw3DMemory(arr, index, -1);
+    log(`Access index ${index}: ${arr[index]}`);
+    await sleep(Math.max(120, Math.round(350 / state.speed)));
+  }
+
+  async traverse(_params, log) {
+    const arr = [...this.getArray()];
+    for (let i = 0; i < arr.length; i++) {
+      draw3DMemory(arr, i, -1);
+      log(`Traverse index ${i}: ${arr[i]}`);
+      await sleep(Math.max(70, Math.round(220 / state.speed)));
+    }
+    log('Traversal complete.');
+  }
+
+  async randomize(_params, log) {
+    const size = Math.floor(Math.random() * 6) + 5;
+    const next = Array.from({ length: size }, () => Math.floor(Math.random() * 100));
+    log(`Randomized array: [${next.join(', ')}]`);
+    await this.animateUpdate(next, -1);
+  }
+
+  async reset(_params, log) {
+    log('Array reset to initial state.');
+    await this.animateUpdate([...this.initial], -1);
+  }
+}
+
+const arrayVisualizer = new ArrayVisualizer(() => state.values, (arr) => {
+  state.values = arr;
+  state.steps = [];
+  state.stepIndex = -1;
+  renderPanels();
+});
+
 function isPositionAlgo(algo) {
   return algo.includes('Insert') || algo.includes('Delete') || algo.includes('Update') || algo.startsWith('deque');
 }
@@ -1244,6 +1337,35 @@ speedRange.addEventListener('input', () => {
   speedLabel.textContent = `Speed: ${state.speed.toFixed(1)}x`;
 });
 
+
+
+runOpBtn.addEventListener('click', async () => {
+  const op = opSelect.value;
+  const index = opIndexInput.value === '' ? 0 : Number(opIndexInput.value);
+  const value = opValueInput.value === '' ? 0 : Number(opValueInput.value);
+  const log = (msg) => {
+    dryEl.textContent = `${dryEl.textContent ? `${dryEl.textContent}
+` : ''}${msg}`;
+    statusEl.textContent = msg;
+  };
+
+  if (algoMeta[state.algo].type === 'ds') {
+    statusEl.textContent = 'Direct operation runner is for array visualization mode; use Load/Step for DS algorithms.';
+    return;
+  }
+
+  try {
+    if (op === 'insert') await arrayVisualizer.insert({ value, index }, log);
+    else if (op === 'delete') await arrayVisualizer.delete({ index }, log);
+    else if (op === 'search') await arrayVisualizer.search({ value }, log);
+    else if (op === 'access') await arrayVisualizer.access({ index }, log);
+    else if (op === 'traverse') await arrayVisualizer.traverse({}, log);
+    else if (op === 'randomize') await arrayVisualizer.randomize({}, log);
+    else if (op === 'reset') await arrayVisualizer.reset({}, log);
+  } catch (e) {
+    statusEl.textContent = `Operation error: ${e?.message || e}`;
+  }
+});
 
 algoSelect.addEventListener('change', () => {
   state.algo = algoSelect.value;

@@ -95,6 +95,27 @@
             <input id="speedRange" type="range" min="0.4" max="2.2" step="0.1" value="1" />
           </label>
           <small id="speedLabel">Speed: 1.0x</small>
+          <label>
+            Array Operation
+            <select id="opSelect">
+              <option value="insert">Insert</option>
+              <option value="delete">Delete</option>
+              <option value="search">Search</option>
+              <option value="access">Access</option>
+              <option value="traverse">Traverse</option>
+              <option value="randomize">Randomize</option>
+              <option value="reset">Reset</option>
+            </select>
+          </label>
+          <label>
+            Op Index
+            <input id="opIndexInput" type="number" placeholder="index" />
+          </label>
+          <label>
+            Op Value
+            <input id="opValueInput" type="number" placeholder="value" />
+          </label>
+          <button id="runOpBtn">Run Op</button>
         </div>
         <small id="status">Load values to begin.</small>
       </section>
