@@ -32,6 +32,7 @@ Re-started as a **feature-by-feature** algorithm visualizer with slower, explain
   - active code line
 - Code view shows algorithm lines and highlights control flow line-by-line.
 - Orientation adapts by structure type (horizontal linked list/queue, vertical stack) with more prominent DS-specific memory diagrams.
+- Stacks show different visual forms: array stack as vertical pile, linked stack as node + next-reference chain.
 - Transitions are intentionally slow and smooth for teaching.
 
 ## Run

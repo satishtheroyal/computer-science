@@ -833,15 +833,55 @@ function drawLinkedListDiagram(arr, a, doubly = false, circular = false) {
   }
 }
 
-function drawStackDiagram(arr, a) {
+function drawStackArrayPile(arr, a) {
   const boxW = 120;
   const boxH = 34;
   const x = (canvas.width - boxW) / 2;
-  let y = canvas.height * 0.76;
+  let y = canvas.height * 0.78;
   for (let i = 0; i < arr.length; i++) {
     drawBar3D(x, y - boxH, boxW, boxH, i === a ? '#5eead4' : '#4f8cff', arr[i], i);
     y -= boxH + 8;
   }
+  ctx.fillStyle = '#9ec2ff';
+  ctx.font = '12px sans-serif';
+  ctx.fillText('TOP', x + boxW + 14, y + boxH + 6);
+}
+
+function drawStackLinkedNodes(arr, a) {
+  const boxW = 130;
+  const boxH = 40;
+  const x = (canvas.width - boxW) / 2;
+  let y = canvas.height * 0.76;
+
+  for (let i = 0; i < arr.length; i++) {
+    drawBar3D(x, y - boxH, boxW, boxH, i === a ? '#5eead4' : '#4f8cff', arr[i], i);
+    ctx.fillStyle = '#cde3ff';
+    ctx.font = '11px monospace';
+    ctx.fillText('next', x + boxW + 10, y - boxH / 2 + 4);
+
+    if (i < arr.length - 1) {
+      ctx.strokeStyle = '#9ec2ff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + boxW - 6, y + 2);
+      ctx.lineTo(x + boxW - 6, y + 14);
+      ctx.lineTo(x + boxW + 16, y + 14);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x + boxW + 16, y + 14);
+      ctx.lineTo(x + boxW + 10, y + 10);
+      ctx.lineTo(x + boxW + 10, y + 18);
+      ctx.closePath();
+      ctx.fillStyle = '#9ec2ff';
+      ctx.fill();
+    }
+
+    y -= boxH + 14;
+  }
+
+  ctx.fillStyle = '#9ec2ff';
+  ctx.font = '12px sans-serif';
+  ctx.fillText('TOP (node)', x + boxW + 14, y + boxH + 10);
 }
 
 function drawQueueDiagram(arr, a, circular = false) {
@@ -870,8 +910,10 @@ function draw3DMemory(arr, a = -1, b = -1) {
 
   if (algo.includes('linkedList')) {
     drawLinkedListDiagram(arr, a, algo.includes('Doubly'), algo.includes('Circular'));
-  } else if (algo.startsWith('stack')) {
-    drawStackDiagram(arr, a >= 0 ? a : arr.length - 1);
+  } else if (algo.startsWith('stackArray')) {
+    drawStackArrayPile(arr, a >= 0 ? a : arr.length - 1);
+  } else if (algo.startsWith('stackLinked')) {
+    drawStackLinkedNodes(arr, a >= 0 ? a : 0);
   } else if (algo.startsWith('queue') || algo.startsWith('deque')) {
     drawQueueDiagram(arr, a >= 0 ? a : 0, algo.includes('Circular'));
   } else {
@@ -1052,7 +1094,8 @@ function renderPanels() {
 
 function getOrientationLabel(algo) {
   if (algo.includes('linkedList')) return 'Horizontal node-link orientation';
-  if (algo.startsWith('stack')) return 'Vertical stack orientation';
+  if (algo.startsWith('stackArray')) return 'Vertical stack-pile orientation';
+  if (algo.startsWith('stackLinked')) return 'Vertical linked-node stack orientation';
   if (algo.startsWith('queue') || algo.startsWith('deque')) return 'Horizontal queue/deque orientation';
   if (algo === 'treeBFS') return 'Tree level orientation';
   if (algo === 'graphBFS') return 'Graph traversal orientation';
