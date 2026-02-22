@@ -16,6 +16,8 @@ Re-started as a **feature-by-feature** algorithm visualizer with slower, explain
     - Hashing with Linear Probing (insert + search)
 - User enters input values (comma separated).
 - For target-based algorithms, user enters a target value.
+- Setup is dynamic per algorithm: target/value, update value, and position (beginning/middle/end) fields are enabled only when needed.
+- Empty structures are handled explicitly (underflow/empty-list steps are shown for invalid delete/pop/dequeue/update operations).
 - User can run operations for every algorithm using:
   - **Load**
   - **Prev Step**

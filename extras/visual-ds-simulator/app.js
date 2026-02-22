@@ -96,6 +96,8 @@ const state = {
   algo: 'bubble',
   values: [],
   target: null,
+  updateValue: null,
+  position: 'end',
   steps: [],
   stepIndex: -1,
   isAnimating: false,
@@ -113,6 +115,8 @@ const stepEl = document.getElementById('stepBlock');
 const algoSelect = document.getElementById('algorithmSelect');
 const valuesInput = document.getElementById('valuesInput');
 const targetInput = document.getElementById('targetInput');
+const positionSelect = document.getElementById('positionSelect');
+const updateValueInput = document.getElementById('updateValueInput');
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 const playBtn = document.getElementById('playBtn');
@@ -402,7 +406,7 @@ function generateSearchSteps(algo, input, target) {
   return out;
 }
 
-function generateDsSteps(algo, input, target) {
+function generateDsSteps(algo, input, target, position = "end", updateValue = null) {
   const out = [];
   const arr = [...input];
 
@@ -416,42 +420,46 @@ function generateDsSteps(algo, input, target) {
     const listType = algo.includes('Doubly') ? 'doubly' : (algo.includes('Circular') ? 'circular' : 'singly');
     pushStep(out, arr, -1, -1, `Build ${listType} linked list`, 0, `Interpret input array as ${listType} linked-list nodes.`);
 
+    const pickIndex = () => {
+      if (!arr.length) return -1;
+      if (position === 'beginning') return 0;
+      if (position === 'middle') return Math.floor(arr.length / 2);
+      return arr.length - 1;
+    };
+
     if (algo.endsWith('Insert')) {
-      pushStep(out, arr, -1, -1, `Create node(${target})`, 1, 'Create new node with target value.');
-      if (listType === 'singly') {
-        pushStep(out, arr, arr.length - 1, -1, 'Traverse to tail', 2, 'Move to last node via next pointers.');
-      }
-      arr.push(target);
-      pushStep(out, arr, arr.length - 1, -1, 'Link new node and update tail', 4, 'Attach new node at end and refresh last pointer(s).');
+      const insertIdx = position === 'beginning' ? 0 : (position === 'middle' ? Math.floor(arr.length / 2) : arr.length);
+      pushStep(out, arr, -1, -1, `Create node(${target})`, 1, 'Create new node for insertion.');
+      arr.splice(insertIdx, 0, target);
+      pushStep(out, arr, insertIdx, -1, `Insert at ${position}`, 4, `Inserted node at ${position} position.`);
       pushStep(out, arr, -1, -1, 'Insert operation complete', 5, 'Linked-list insertion finished.');
       return out;
     }
 
     if (algo.endsWith('Delete')) {
-      for (let i = 0; i < arr.length; i++) {
-        pushStep(out, arr, i, -1, `Scan node ${i}`, 1, `Check whether node value ${arr[i]} equals target ${target}.`);
+      if (!arr.length) {
+        pushStep(out, arr, -1, -1, 'Underflow / empty list', 1, 'Cannot delete from empty linked list.');
+        return out;
       }
-      const idx = mapDelete(arr, target);
-      if (idx >= 0) {
-        pushStep(out, arr, idx, -1, 'Reconnect links around deleted node', 2, 'Bypass target node and preserve list connectivity.');
-        pushStep(out, arr, -1, -1, 'Delete operation complete', 5, 'Target node removed from linked list.');
-      } else {
-        pushStep(out, arr, -1, -1, 'Target not found', 5, 'No node with target value exists.');
-      }
+      const idx = pickIndex();
+      pushStep(out, arr, idx, -1, `Select ${position} node`, 1, 'Choose deletion target by requested position.');
+      const removed = arr.splice(idx, 1)[0];
+      pushStep(out, arr, idx, -1, `Delete node value ${removed}`, 2, 'Reconnect links around removed node.');
+      pushStep(out, arr, -1, -1, 'Delete operation complete', 5, 'Linked-list deletion finished.');
       return out;
     }
 
     if (algo.endsWith('Update')) {
-      for (let i = 0; i < arr.length; i++) {
-        pushStep(out, arr, i, -1, `Scan node ${i}`, 1, `Check if node value ${arr[i]} matches old value ${target}.`);
-        if (arr[i] === target) {
-          arr[i] = target + 100;
-          pushStep(out, arr, i, -1, `Update node ${i} value`, 2, `Node updated from ${target} to ${target + 100} for visible update demo.`);
-          pushStep(out, arr, -1, -1, 'Update operation complete', 5, 'Linked-list update finished.');
-          return out;
-        }
+      if (!arr.length) {
+        pushStep(out, arr, -1, -1, 'Underflow / empty list', 1, 'Cannot update an empty linked list.');
+        return out;
       }
-      pushStep(out, arr, -1, -1, 'Target not found', 5, 'No node matched update target value.');
+      const idx = pickIndex();
+      const old = arr[idx];
+      pushStep(out, arr, idx, -1, `Select ${position} node`, 1, 'Choose update target by requested position.');
+      arr[idx] = updateValue;
+      pushStep(out, arr, idx, -1, `Update ${old} -> ${updateValue}`, 2, 'Write new value and keep links unchanged.');
+      pushStep(out, arr, -1, -1, 'Update operation complete', 5, 'Linked-list update finished.');
       return out;
     }
 
@@ -469,6 +477,7 @@ function generateDsSteps(algo, input, target) {
       return out;
     }
   }
+
 
   if (algo === 'treeBFS') {
     pushStep(out, arr, 0, -1, 'Build tree nodes from level-order input', 0, 'Input is interpreted as level-order binary tree values.');
@@ -707,13 +716,13 @@ function generateDsSteps(algo, input, target) {
   if (algo.startsWith('deque')) {
     const dq = [...arr];
     pushStep(out, dq, 0, dq.length - 1, 'Initialize deque', 0, 'Double-ended queue supports both front and rear operations.');
-    if (algo === 'dequePushFront') {
+    if (algo === 'dequePushFront' || (algo.startsWith('deque') && position === 'beginning' && algo.includes('Push'))) {
       dq.unshift(target);
       pushStep(out, dq, 0, -1, `Push front ${target}`, 2, 'Insert value at front side.');
       pushStep(out, dq, -1, -1, 'Operation complete', 5, 'Deque push-front completed.');
       return out;
     }
-    if (algo === 'dequePushBack') {
+    if (algo === 'dequePushBack' || (algo.startsWith('deque') && position === 'end' && algo.includes('Push'))) {
       dq.push(target);
       pushStep(out, dq, dq.length - 1, -1, `Push back ${target}`, 2, 'Insert value at rear side.');
       pushStep(out, dq, -1, -1, 'Operation complete', 5, 'Deque push-back completed.');
@@ -759,11 +768,11 @@ function generateDsSteps(algo, input, target) {
   return out;
 }
 
-function generateSteps(algo, input, target) {
+function generateSteps(algo, input, target, position = "end", updateValue = null) {
   const kind = algoMeta[algo].type;
   if (kind === 'sort') return generateSortSteps(algo, input);
   if (kind === 'search') return generateSearchSteps(algo, input, target);
-  return generateDsSteps(algo, input, target);
+  return generateDsSteps(algo, input, target, position, updateValue);
 }
 
 function drawBar3D(x, y, w, h, color, value, idx) {
@@ -1051,6 +1060,32 @@ function getOrientationLabel(algo) {
   return 'Array/bar memory orientation';
 }
 
+function isPositionAlgo(algo) {
+  return algo.includes('Insert') || algo.includes('Delete') || algo.includes('Update') || algo.startsWith('deque');
+}
+
+function needsTargetValue(algo) {
+  if (algo.includes('Search')) return true;
+  if (algo === 'hashingLinearProbe') return true;
+  if (algo.includes('Push') || algo.includes('Enqueue') || algo.includes('Insert')) return true;
+  return false;
+}
+
+function needsUpdateValue(algo) {
+  return algo.includes('Update');
+}
+
+function algorithmAllowsEmptyInput(algo) {
+  return algoMeta[algo].type === 'ds';
+}
+
+function refreshSetupFields() {
+  const algo = state.algo;
+  targetInput.disabled = !needsTargetValue(algo);
+  updateValueInput.disabled = !needsUpdateValue(algo);
+  positionSelect.disabled = !isPositionAlgo(algo);
+}
+
 function stopAutoPlay() {
   if (state.autoTimer !== null) {
     clearInterval(state.autoTimer);
@@ -1064,19 +1099,25 @@ function loadSimulation() {
   state.algo = algoSelect.value;
   state.values = parseValues(valuesInput.value);
   state.target = targetInput.value === '' ? null : Number(targetInput.value);
+  state.updateValue = updateValueInput.value === '' ? null : Number(updateValueInput.value);
+  state.position = positionSelect.value;
 
-  if (!state.values.length) {
+  if (!state.values.length && !algorithmAllowsEmptyInput(state.algo)) {
     statusEl.textContent = 'Please enter valid numbers (comma separated).';
     return;
   }
-  if (algoMeta[state.algo].targetRequired && (state.target === null || Number.isNaN(state.target))) {
-    statusEl.textContent = 'Please enter a valid target for this algorithm.';
+  if (needsTargetValue(state.algo) && (state.target === null || Number.isNaN(state.target))) {
+    statusEl.textContent = 'Please enter a valid target/value for this algorithm.';
+    return;
+  }
+  if (needsUpdateValue(state.algo) && (state.updateValue === null || Number.isNaN(state.updateValue))) {
+    statusEl.textContent = 'Please enter a valid new value for update operation.';
     return;
   }
 
-  state.steps = generateSteps(state.algo, state.values, state.target);
+  state.steps = generateSteps(state.algo, state.values, state.target, state.position, state.updateValue);
   state.stepIndex = 0;
-  statusEl.textContent = `Loaded ${state.algo} (${algoMeta[state.algo].type}) with ${state.values.length} values${algoMeta[state.algo].targetRequired ? `, target=${state.target}` : ''}. ${getOrientationLabel(state.algo)}. Use Prev/Next/Auto Play/Pause operations.`;
+  statusEl.textContent = `Loaded ${state.algo} (${algoMeta[state.algo].type}) with ${state.values.length} values${needsTargetValue(state.algo) ? `, target/value=${state.target}` : ''}${needsUpdateValue(state.algo) ? `, newValue=${state.updateValue}` : ''}${isPositionAlgo(state.algo) ? `, position=${state.position}` : ''}. ${getOrientationLabel(state.algo)}. Use Prev/Next/Auto Play/Pause operations.`;
   renderPanels();
 }
 
@@ -1132,6 +1173,8 @@ function resetAll() {
   state.stepIndex = -1;
   valuesInput.value = '';
   targetInput.value = '';
+  updateValueInput.value = '';
+  positionSelect.value = 'end';
   statusEl.textContent = 'Reset complete. Enter values and load again.';
   renderPanels();
 }
@@ -1148,7 +1191,7 @@ document.getElementById('resetBtn').addEventListener('click', resetAll);
 
 algoSelect.addEventListener('change', () => {
   state.algo = algoSelect.value;
-  targetInput.disabled = !algoMeta[state.algo].targetRequired;
+  refreshSetupFields();
   renderPanels();
 });
 
@@ -1157,6 +1200,6 @@ window.addEventListener('resize', () => {
   renderPanels();
 });
 
-targetInput.disabled = !algoMeta[state.algo].targetRequired;
+refreshSetupFields();
 resize();
 renderPanels();
